@@ -1,0 +1,19 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
+
+namespace GEOGAS.Api.Models
+{
+    public class Presio_Gas
+    {
+        
+        public required string tipo {get; set; }
+        public int presio {get; set; }
+        
+
+        // Propiedad para la relación (Clave Foránea)
+       //  public int UserId { get; set; } 
+         public int Gasolinerasplace_id { get; set; }
+    }
+}
