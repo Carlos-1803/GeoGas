@@ -1,13 +1,29 @@
 using Microsoft.EntityFrameworkCore;
 using GEOGAS.Api.Data; // Asegúrate de incluir el namespace donde está MyDbContext
-using Pomelo.EntityFrameworkCore.MySql.Infrastructure; // Necesario para el ServerVersion
+using Pomelo.EntityFrameworkCore.MySql.Infrastructure; 
 
 var builder = WebApplication.CreateBuilder(args);
 
+// --- INICIO: CONFIGURACIÓN DE LA BASE DE DATOS Y CONTEXTO ---
+
+// 1. Obtener la cadena de conexión (DefaultConnection)
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+// 2. Registrar MyDbContext e indicar que use MySQL
+builder.Services.AddDbContext<MyDbContext>(options =>
+    options.UseMySql(
+        connectionString,
+        ServerVersion.AutoDetect(connectionString), // Detección automática de la versión de MySQL
+        mySqlOptions => mySqlOptions.EnableRetryOnFailure() 
+    )
+);
+
+// --- FIN: CONFIGURACIÓN DE LA BASE DE DATOS Y CONTEXTO ---
 
 
 // Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+// CORRECCIÓN: Agregar soporte para los Controladores (como GasolinerasController)
+builder.Services.AddControllers(); 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -20,7 +36,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// CORRECCIÓN: Comentamos la redirección HTTPS para evitar el error 'Failed to determine the https port' en desarrollo.
+// app.UseHttpsRedirection(); 
+
+app.UseAuthorization();
+
+// CORRECCIÓN: Mapeamos los controladores para que los endpoints de GasolinerasController funcionen
+app.MapControllers(); 
 
 var summaries = new[]
 {

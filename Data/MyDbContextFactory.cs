@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 using System;
 using System.IO;
+using GEOGAS.Api.Data;
 
 // Asegúrate de que el namespace coincide con la ubicación de tu DbContext
 namespace GEOGAS.Api.Data 

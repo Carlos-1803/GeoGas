@@ -2,6 +2,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore.Design;
 using GEOGAS.Api.Models;
 using Microsoft.EntityFrameworkCore;
+using GEOGAS.Models;
 
 namespace GEOGAS.Api.Data   
 {
@@ -19,7 +20,9 @@ namespace GEOGAS.Api.Data
         public DbSet<Rutas> GenRutas { get; set; }
 
         public DbSet<ModelCoches> Coches { get; set; }
-       
+        public DbSet<Gasolineras> Gasolinera { get; set; }
+
+        public DbSet<Presio_Gas> presio_Gas { get; set; }
         
     }
 }

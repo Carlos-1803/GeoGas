@@ -7,7 +7,8 @@ namespace GEOGAS.Api.Models
 {
     public class Presio_Gas
     {
-        
+        [Key]
+        public int Id { get; set; }
         public required string tipo {get; set; }
         public int presio {get; set; }
         

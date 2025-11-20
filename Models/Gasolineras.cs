@@ -3,17 +3,19 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
-namespace GEOGAS.Api.Models
+namespace GEOGAS.Models
 {
     public class Gasolineras
     {
+        [Key]
         public int place_id { get; set; }
         
-        public int Nombre {get; set; }
-        public int cre_id {get; set; }
-        public int x {get; set; }
+        
+        public required string Nombre {get; set; }
+        public required string cre_id {get; set; }
+        public double x {get; set; }
 
-        public int y {get; set; }
+        public double y {get; set; }
 
         // Propiedad para la relación (Clave Foránea)
        // public int UserId { get; set; } 
