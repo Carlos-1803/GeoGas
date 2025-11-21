@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.ComponentModel.DataAnnotations;
 
-namespace GeoGasNueva.Models
+namespace GEOGAS.Models
 {
     public class Coche
     {
@@ -12,10 +12,10 @@ namespace GeoGasNueva.Models
         public int Id { get; set; }
           
         [StringLength(50)]
-        public string Marca { get; set; }
+        public required string Marca { get; set; }
         
         [StringLength(50)]
-        public string Modelo { get; set; }
+        public required string Modelo { get; set; }
         
         public DateTime FechaCreacion { get; set; } = DateTime.Now;
         

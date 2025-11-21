@@ -4,6 +4,8 @@ using GEOGAS.Api.Models;
 using Microsoft.EntityFrameworkCore;
 using GEOGAS.Models;
 
+
+
 namespace GEOGAS.Api.Data   
 {
     public class MyDbContext : DbContext
@@ -19,7 +21,7 @@ namespace GEOGAS.Api.Data
         public DbSet<User> Users { get; set; }
         public DbSet<Rutas> GenRutas { get; set; }
 
-        public DbSet<ModelCoches> Coches { get; set; }
+        public DbSet<Coche> Coches { get; set; }
         public DbSet<Gasolineras> Gasolinera { get; set; }
 
         public DbSet<Presio_Gas> presio_Gas { get; set; }
