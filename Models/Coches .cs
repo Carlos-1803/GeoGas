@@ -16,10 +16,6 @@ namespace GEOGAS.Models
         
         [StringLength(50)]
         public required string Modelo { get; set; }
-        
-        public DateTime FechaCreacion { get; set; } = DateTime.Now;
-        
-    
-        
+
     }
 }
