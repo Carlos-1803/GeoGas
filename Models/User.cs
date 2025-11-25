@@ -1,72 +1,31 @@
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
-     // Usaremos esto para futuras validaciones
+using System.Collections.Generic; // Mantenido, aunque no se usa directamente en este modelo
 
 namespace GEOGAS.Api.Models
 {
-    // =========================================================
-    // ENTIDAD DE LA BASE DE DATOS
-    // =========================================================
+   
     public class User
     {
-        public Guid Id { get; set; } 
+        //  1. Clave Primaria (PK): Se mantiene 'int'. 
+        // EF Core la configura automáticamente como Primary Key Autoincremental.
+        public int Id { get; set; } 
         
-        // La propiedad 'required' se usa para asegurar que siempre tenga valor
+        //  2. Nombre: Requerido y no anulable.
         [Required]
         public required string Nombre { get; set; }
         
+        //  3. Correo: Requerido y no anulable.
         [Required]
         public required string Correo { get; set; }
         
-        // Almacena el hash seguro, se inicializa en el controlador.
+        //  4. PasswordHash: DEBE ser requerido (no anulable) en el modelo y en la DB.
+        
         [Required]
-        public string? PasswordHash { get; set; } 
-    }
-
-    // =========================================================
-    // DATA TRANSFER OBJECTS (DTOs)
-    // =========================================================
-
-    // DTO para la solicitud de registro (POST /register)
-    public class RegisterRequest
-    {
-        [Required]
-        public required string Nombre { get; set; }
-        [Required]
-        [EmailAddress]
-        public required string Correo { get; set; }
-        [Required]
-        public required string Contraseña { get; set; }
-    }
-    // DTO para la solicitud de Login (POST /auth/login) - ¡CORREGIDO!
-    public class LoginRequest
-    {
-        [Required]
-        [EmailAddress]
-        public required string Correo { get; set; } // Propiedad que faltaba o estaba mal nombrada
-        [Required]
-        public required string Contraseña { get; set; } // Propiedad que faltaba o estaba mal nombrada
-    }
-    
-    // DTO para la solicitud de actualización (PUT /{id})
-    public class UpdateRequest
-    {
-        [Required]
-        public required string Nombre { get; set; }
-        [Required]
-        [EmailAddress]
-        public required string Correo { get; set; }
-        public string? NuevaContraseña { get; set; } // Opcional
-    }
-    
-    // DTO para la respuesta de lectura (GET), excluye PasswordHash por seguridad.
-    // ESTA ES LA CLASE QUE NO ENCUENTRA EL COMPILADOR.
-    public class UserResponse
-    {
-        public Guid Id { get; set; }
-        public required string Nombre { get; set; }
-        public required string Correo { get; set; }
+        [JsonIgnore] 
+        public required string PasswordHash { get; set; }
+        
+        
     }
 }

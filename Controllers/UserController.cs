@@ -1,12 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Authorization; // Necesario para [Authorize] y [AllowAnonymous]
+using Microsoft.AspNetCore.Authorization; 
 using GEOGAS.Api.Models; 
 using GEOGAS.Api.Services; 
 using Microsoft.IdentityModel.Tokens; 
 using System.IdentityModel.Tokens.Jwt; 
 using System.Security.Claims; 
-using System.Text; 
+using System.Text;
+using GEOGAS.Api.Dtos;
 
 
 namespace GEOGAS.Api.Controllers
@@ -34,10 +35,9 @@ namespace GEOGAS.Api.Controllers
 
         // ----------------------------------------------------------------------------------
         // METODO CRUD: CREATE (POST /api/users/register)
-        // Crea un nuevo usuario y devuelve un JWT. Es un endpoint público.
         // ----------------------------------------------------------------------------------
         [HttpPost("register")]
-        [AllowAnonymous] // Permite el acceso sin autenticación (para registro)
+        [AllowAnonymous] 
         public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
             if (!ModelState.IsValid)
@@ -52,13 +52,11 @@ namespace GEOGAS.Api.Controllers
                 return Conflict(new { Message = "El correo electrónico ya está registrado." });
             }
 
-            // 2. Crear el objeto Usuario
+            // 2. Crear el objeto Usuario (Id se asigna en la DB)
             var newUser = new User 
             {
-                Id = Guid.NewGuid(),
                 Nombre = request.Nombre,
                 Correo = request.Correo,
-                // FIX para el error 'Required member must be set': Inicializamos antes de hashear
                 PasswordHash = string.Empty 
             };
             
@@ -81,17 +79,16 @@ namespace GEOGAS.Api.Controllers
         
         // ----------------------------------------------------------------------------------
         // METODO CRUD: READ ALL (GET /api/users)
-        // Obtiene la lista de todos los usuarios. Requiere JWT válido.
         // ----------------------------------------------------------------------------------
         [HttpGet]
         [AllowAnonymous]
-        [Authorize] // Requiere un token JWT válido para acceder
+        [Authorize] 
         public async Task<IActionResult> GetAll()
         {
             var users = await _userService.GetAllUsersAsync();
             
             // Proyectar al DTO (excluye PasswordHash)
-            var response = users.Select(u => new UserResponse 
+            var response = users.Select(u => new UserResponse
             {
                 Id = u.Id,
                 Nombre = u.Nombre,
@@ -103,14 +100,13 @@ namespace GEOGAS.Api.Controllers
 
         // ----------------------------------------------------------------------------------
         // METODO CRUD: READ BY ID (GET /api/users/{id})
-        // Obtiene un usuario por su ID. Requiere JWT válido.
         // ----------------------------------------------------------------------------------
         [HttpGet("{id}")]
         [AllowAnonymous]
-       [Authorize] // Requiere un token JWT válido
-        public async Task<IActionResult> GetById(Guid id)
+       [Authorize] 
+        public async Task<IActionResult> GetById(int id) // <--- CORRECCIÓN: Guid -> int
         {
-            var user = await _userService.GetUserByIdAsync(id);
+            var user = await _userService.GetUserByIdAsync(id); // <--- Usa 'int'
 
             if (user == null)
             {
@@ -130,18 +126,17 @@ namespace GEOGAS.Api.Controllers
 
         // ----------------------------------------------------------------------------------
         // METODO CRUD: UPDATE (PUT /api/users/{id})
-        // Actualiza un usuario existente. Requiere JWT válido.
         // ----------------------------------------------------------------------------------
         [HttpPut("{id}")]
-        [Authorize] // Requiere un token JWT válido
-        public async Task<IActionResult> Update(Guid id, [FromBody] UpdateRequest request)
+        [Authorize] 
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateRequest request) // <--- CORRECCIÓN: Guid -> int
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
             
-            var userToUpdate = await _userService.GetUserByIdAsync(id);
+            var userToUpdate = await _userService.GetUserByIdAsync(id); // <--- Usa 'int'
             if (userToUpdate == null)
             {
                 return NotFound(new { Message = $"Usuario con ID {id} no encontrado." });
@@ -172,13 +167,12 @@ namespace GEOGAS.Api.Controllers
 
         // ----------------------------------------------------------------------------------
         // METODO CRUD: DELETE (DELETE /api/users/{id})
-        // Elimina un usuario por su ID. Requiere JWT válido.
         // ----------------------------------------------------------------------------------
         [HttpDelete("{id}")]
-       [Authorize] // Requiere un token JWT válido
-        public async Task<IActionResult> Delete(Guid id)
+       [Authorize] 
+        public async Task<IActionResult> Delete(int id) // <--- CORRECCIÓN: Guid -> int
         {
-            var success = await _userService.DeleteUserAsync(id);
+            var success = await _userService.DeleteUserAsync(id); // <--- Usa 'int'
 
             if (!success)
             {
@@ -199,6 +193,7 @@ namespace GEOGAS.Api.Controllers
             // 1. Claims (Payload): Definir qué información del usuario va en el token
             var claims = new List<Claim>
             {
+                // user.Id (int) se convierte a string para el claim
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()), 
                 new Claim(ClaimTypes.Email, user.Correo)
             };
