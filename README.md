@@ -104,4 +104,5 @@ El controlador de usuarios (v1.1.0) implementa un sistema de autenticación basa
 | **v0.2** |  Creación de la **migración `Version 0.2` de la DB**. Actualización a **.NET 9.0.0**. Implementación de `MyDbContextFactory.cs`. |
 | **v0.1** | Inicio del proyecto. Conexión a DB `GEOGAS1`. Creación de carpetas (`Models`, `DATA`, `Controllers`) y tablas iniciales (`RUTAS`, `USER`). |
 
-v2.0.0 Creacion de los controladores para presio de las gasolinas y tambien el controlador de coches al igual que implementacion de su tabla 
+**Versión 2.0.0** (**`Presio_GasController`,`CocheController`**)
+Se crearon los controles para manejar los precios de las gasolinas y también el control para los coches. Además, se agregó la tabla necesaria para que todo funcione correctamente en el Controlador de coches.
