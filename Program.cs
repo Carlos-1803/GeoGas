@@ -24,7 +24,10 @@ builder.Services.AddDbContext<MyDbContext>(options =>
     builder.Services.AddScoped<IUserService, UserService>();
     builder.Services.AddControllers();
 // --- FIN: CONFIGURACIÓN DE LA BASE DE DATOS Y CONTEXTO ---
-
+// Servicios de Lógica de Negocio y Repositorios
+builder.Services.AddScoped<IUserService, UserService>();
+// ¡SOLUCIÓN! Registro del Servicio de JWT
+builder.Services.AddScoped<IJwtService, JwtService>();
 
 // =========================================================
 // --- INICIO: CONFIGURACIÓN DE SEGURIDAD (PASSWORD HASHING Y JWT) ---

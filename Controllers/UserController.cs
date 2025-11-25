@@ -85,7 +85,7 @@ namespace GEOGAS.Api.Controllers
         // ----------------------------------------------------------------------------------
         [HttpGet]
         [AllowAnonymous]
-        //[Authorize] // Requiere un token JWT válido para acceder
+        [Authorize] // Requiere un token JWT válido para acceder
         public async Task<IActionResult> GetAll()
         {
             var users = await _userService.GetAllUsersAsync();
@@ -107,7 +107,7 @@ namespace GEOGAS.Api.Controllers
         // ----------------------------------------------------------------------------------
         [HttpGet("{id}")]
         [AllowAnonymous]
-       // [Authorize] // Requiere un token JWT válido
+       [Authorize] // Requiere un token JWT válido
         public async Task<IActionResult> GetById(Guid id)
         {
             var user = await _userService.GetUserByIdAsync(id);
@@ -133,7 +133,7 @@ namespace GEOGAS.Api.Controllers
         // Actualiza un usuario existente. Requiere JWT válido.
         // ----------------------------------------------------------------------------------
         [HttpPut("{id}")]
-      //  [Authorize] // Requiere un token JWT válido
+        [Authorize] // Requiere un token JWT válido
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateRequest request)
         {
             if (!ModelState.IsValid)
@@ -175,7 +175,7 @@ namespace GEOGAS.Api.Controllers
         // Elimina un usuario por su ID. Requiere JWT válido.
         // ----------------------------------------------------------------------------------
         [HttpDelete("{id}")]
-       // [Authorize] // Requiere un token JWT válido
+       [Authorize] // Requiere un token JWT válido
         public async Task<IActionResult> Delete(Guid id)
         {
             var success = await _userService.DeleteUserAsync(id);

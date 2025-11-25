@@ -40,6 +40,15 @@ namespace GEOGAS.Api.Models
         [Required]
         public required string Contraseña { get; set; }
     }
+    // DTO para la solicitud de Login (POST /auth/login) - ¡CORREGIDO!
+    public class LoginRequest
+    {
+        [Required]
+        [EmailAddress]
+        public required string Correo { get; set; } // Propiedad que faltaba o estaba mal nombrada
+        [Required]
+        public required string Contraseña { get; set; } // Propiedad que faltaba o estaba mal nombrada
+    }
     
     // DTO para la solicitud de actualización (PUT /{id})
     public class UpdateRequest

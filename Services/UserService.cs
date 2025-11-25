@@ -83,5 +83,10 @@ namespace GEOGAS.Api.Services
             await _context.SaveChangesAsync();
             return true;
         }
+
+        public Task<User> GetUserByEmailAsync(object correo)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

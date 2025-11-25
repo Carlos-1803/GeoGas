@@ -95,6 +95,8 @@ El controlador de usuarios (v1.1.0) implementa un sistema de autenticación basa
 ## 📜 Historial de Versiones
 
 | Versión | Resumen de Cambios |
+| **v2.1.0**| Se crearon los controladores para el resgistro y logeo de los usuarios (`AuthController`), Tambien se implementaron 2 nuevos servicios (`ImServicioJWT` y `JwtServices`) para que funcione el logeo y el registro de usuarios.|
+| **v2.0.0** | Versión 2.0.0 ( Presio_GasController,CocheController ) Se crearon los controles para manejar los precios de las gasolinas y también el control para los coches. Además, se agregó la tabla necesaria para que todo funcione correctamente en el Controlador de coches.  |
 | **v1.1.2** | Actualización de la documentación (`README.md`). |
 | **v1.1.1** | Corrección de errores mínimos y eliminación de archivos de proyecto redundantes (`GeoGasNuevo.*`). |
 | **v1.1.0** |  Creación del **`UsersController`** (Autenticación JWT, creación de usuarios). Inclusión de **`Microsoft.AspNetCore.Identity.Core`** y **`Microsoft.AspNetCore.Authentication.JwtBearer`**. |
@@ -104,5 +106,3 @@ El controlador de usuarios (v1.1.0) implementa un sistema de autenticación basa
 | **v0.2** |  Creación de la **migración `Version 0.2` de la DB**. Actualización a **.NET 9.0.0**. Implementación de `MyDbContextFactory.cs`. |
 | **v0.1** | Inicio del proyecto. Conexión a DB `GEOGAS1`. Creación de carpetas (`Models`, `DATA`, `Controllers`) y tablas iniciales (`RUTAS`, `USER`). |
 
-**Versión 2.0.0** (**`Presio_GasController`,`CocheController`**)
-Se crearon los controles para manejar los precios de las gasolinas y también el control para los coches. Además, se agregó la tabla necesaria para que todo funcione correctamente en el Controlador de coches.

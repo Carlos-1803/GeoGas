@@ -22,5 +22,6 @@ namespace GEOGAS.Api.Services
         // Agrega un nuevo usuario a la base de datos
         Task<User> CreateUserAsync(User newUser);
         Task<bool> DeleteUserAsync(Guid id);
+        Task<User> GetUserByEmailAsync(object correo);
     }
 }
