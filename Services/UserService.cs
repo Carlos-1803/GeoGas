@@ -1,6 +1,7 @@
 using GEOGAS.Api.Data;
 using GEOGAS.Api.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic; // Necesario para IEnumerable
 using System.Threading.Tasks;
 
 namespace GEOGAS.Api.Services
@@ -15,15 +16,9 @@ namespace GEOGAS.Api.Services
             _context = context;
         }
 
-        /// <summary>
-        /// Busca un usuario por correo electrónico de forma asíncrona.
-        /// </summary>
-        public async Task<User?> GetUserByEmailAsync(string email)
-        {
-            // Busca la primera coincidencia con el correo ignorando mayúsculas/minúsculas
-            return await _context.Users
-                                 .FirstOrDefaultAsync(u => u.Correo == email);
-        }
+        // -------------------------------------------------------------------------
+        // METODOS CRUD CORE
+        // -------------------------------------------------------------------------
 
         /// <summary>
         /// Crea un nuevo usuario y lo guarda en la base de datos.
@@ -35,58 +30,62 @@ namespace GEOGAS.Api.Services
             return newUser;
         }
 
+        /// <summary>
+        /// Busca un usuario por correo electrónico de forma asíncrona.
+        /// </summary>
+        public async Task<User?> GetUserByEmailAsync(string email)
+        {
+            // Busca la primera coincidencia con el correo
+            return await _context.Users
+                                 .FirstOrDefaultAsync(u => u.Correo == email);
+        }
+
+        /// <summary>
+        /// Obtiene un usuario por su ID (int).
+        /// </summary>
+        public async Task<User?> GetUserByIdAsync(int id)
+        {
+            // FindAsync es eficiente para buscar por clave primaria (int)
+            return await _context.Users.FindAsync(id); 
+        }
+
+        /// <summary>
+        /// Obtiene la lista de todos los usuarios.
+        /// </summary>
         public async Task<IEnumerable<User>> GetAllUsersAsync()
         {
-            return await _context.Users.ToListAsync();
-            throw new NotImplementedException();
+            // Se elimina el throw new NotImplementedException() duplicado
+            return await _context.Users.ToListAsync(); 
         }
 
-        public Task<User?> GetUserByIdAsync(int id)
-        {
-            throw new NotImplementedException();
-        }
-
+        /// <summary>
+        /// Actualiza un usuario existente.
+        /// </summary>
         public async Task<bool> UpdateUserAsync(User user)
         {
-            //throw new NotImplementedException();
             _context.Users.Update(user);
             await _context.SaveChangesAsync();
             return true;
         }
 
-        public Task<bool> DeleteUserAsync(int id)
+        /// <summary>
+        /// Elimina un usuario por su ID (int).
+        /// </summary>
+        public async Task<bool> DeleteUserAsync(int id)
         {
-            throw new NotImplementedException();
-        }
-
-        public Task GetUserByIdAsync(Guid id)
-        {
-            throw new NotImplementedException();
-        }
-
-        async Task<User?> IUserService.GetUserByIdAsync(Guid id)
-        {
-            var user = await _context.Users.FindAsync(id);
-            return user;
-            //throw new NotImplementedException();
-        }
-
-        public async Task<bool> DeleteUserAsync(Guid id)
-        {
+            // 1. Buscar el usuario
             var user = await _context.Users.FindAsync(id);
             if (user == null)
             {
                 return false;
             }
             
+            // 2. Eliminar y guardar cambios
             _context.Users.Remove(user);
             await _context.SaveChangesAsync();
             return true;
         }
-
-        public Task<User> GetUserByEmailAsync(object correo)
-        {
-            throw new NotImplementedException();
-        }
+        
+       
     }
 }

@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
 using GEOGAS.Api.Models;
 using GEOGAS.Api.Services;
-using Microsoft.AspNetCore.Identity.Data;
+using GEOGAS.Api.Dtos;
 
 namespace GEOGAS.Api.Controllers
 {
@@ -13,7 +13,7 @@ namespace GEOGAS.Api.Controllers
     {
         private readonly IUserService _userService;
         private readonly IPasswordHasher<User> _passwordHasher;
-        private readonly IJwtService _jwtService; // Nuevo servicio inyectado
+        private readonly IJwtService _jwtService; 
 
         public AuthController(
             IUserService userService, 
@@ -30,7 +30,7 @@ namespace GEOGAS.Api.Controllers
         // ----------------------------------------------------------------------------------
         [HttpPost("register")]
         [AllowAnonymous] 
-        public async Task<IActionResult> Register([FromBody] Models.RegisterRequest request)
+        public async Task<IActionResult> Register([FromBody] Dtos.RegisterRequest request)
         {
             if (!ModelState.IsValid)
             {
@@ -45,7 +45,8 @@ namespace GEOGAS.Api.Controllers
 
             var newUser = new User 
             {
-                Id = Guid.NewGuid(),
+                // CORRECCIÓN: Eliminar asignación manual. El ID (int) es autoincremental y lo asigna la DB.
+                // Id = int.NewId(), 
                 Nombre = request.Nombre,
                 Correo = request.Correo,
                 PasswordHash = string.Empty 
@@ -54,7 +55,8 @@ namespace GEOGAS.Api.Controllers
             newUser.PasswordHash = _passwordHasher.HashPassword(newUser, request.Contraseña);
 
             var savedUser = await _userService.CreateUserAsync(newUser);
-            var token = _jwtService.GenerateToken(savedUser); // Usando el servicio JWT
+            // El objeto savedUser AHORA tiene el ID entero asignado por la base de datos.
+            var token = _jwtService.GenerateToken(savedUser); 
 
             return Ok(new 
             { 
@@ -68,8 +70,9 @@ namespace GEOGAS.Api.Controllers
         // ----------------------------------------------------------------------------------
         [HttpPost("login")]
         [AllowAnonymous]
-        public  async Task<IActionResult> Login([FromBody] GEOGAS.Api.Models.LoginRequest request)
+        public  async Task<IActionResult> Login([FromBody] Dtos.LoginRequest request)
         {
+            ArgumentNullException.ThrowIfNull(request);
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
@@ -79,17 +82,20 @@ namespace GEOGAS.Api.Controllers
 
             if (user == null)
             {
-                return Unauthorized(new { Message = "Credenciales inválidas." });
+                // Mensaje de error genérico por seguridad
+                return Unauthorized(new { Message = "Credenciales inválidas." }); 
             }
 
             var result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, request.Contraseña);
 
             if (result == PasswordVerificationResult.Failed)
             {
-                return Unauthorized(new { Message = "Credenciales inválidas." });
+                // Mensaje de error genérico por seguridad
+                return Unauthorized(new { Message = "Credenciales inválidas." }); 
             }
 
-            var token = _jwtService.GenerateToken(user); // Usando el servicio JWT
+            // El servicio JWT recibe el usuario que ya tiene el Id (int) y lo usa para generar el token.
+            var token = _jwtService.GenerateToken(user); 
 
             return Ok(new 
             { 

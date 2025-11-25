@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("GeoGas")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9ad5e0111d407231c4b3d532184a31715a1aadca")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e14f0ae15e13b5e658ae757167cddd27189fec99")]
 [assembly: System.Reflection.AssemblyProductAttribute("GeoGas")]
 [assembly: System.Reflection.AssemblyTitleAttribute("GeoGas")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
