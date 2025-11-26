@@ -6,7 +6,7 @@ using System.Text.Json.Serialization;
 
 namespace GEOGAS.Api.Models
 {
-    public class Rutas
+    public class Ruta
     {
         public int Id { get; set; }
 

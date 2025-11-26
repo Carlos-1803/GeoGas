@@ -18,7 +18,7 @@ namespace GEOGAS.Api.Data
         
         
         public DbSet<User> Users { get; set; }
-        public DbSet<Rutas> GenRutas { get; set; }
+        public DbSet<Ruta> Rutas { get; set; }
         public DbSet<Coche> Coches { get; set; }
         public DbSet<Gasolineras> Gasolinera { get; set; }
         public DbSet<Presio_Gas> presio_Gas { get; set; }
