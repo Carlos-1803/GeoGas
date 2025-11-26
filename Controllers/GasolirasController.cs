@@ -1,34 +1,43 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using GEOGAS.Api.Data;  
+using Microsoft.AspNetCore.Authorization; // Necesario para [Authorize]
+using GEOGAS.Api.Data;  
 using GEOGAS.Models; 
+using GEOGAS.Api.Services; // ¡Importamos el servicio de sincronización!
 
 namespace GEOGAS.Api.Controllers
 {
+    // 1. Aplicamos la restricción de seguridad a nivel de controlador.
+   // [Authorize(Roles = "Admin")]
     [Route("api/[controller]")]
     [ApiController]
     public class GasolinerasController : ControllerBase
     {
         private readonly MyDbContext _context;
+        private readonly SincronizacionService _sincronizacionService; // Declaramos el servicio
 
-        public GasolinerasController(MyDbContext context)
+        // Constructor con Inyección de Dependencias
+        public GasolinerasController(MyDbContext context, SincronizacionService sincronizacionService)
         {
             _context = context;
+            _sincronizacionService = sincronizacionService; // Inicializamos el servicio
         }
 
         // 1. VER TODAS (GET: api/gasolineras)
+        // Aunque el controlador está protegido, puedes permitir el acceso público a solo este método si deseas.
+        // Si no se especifica [AllowAnonymous], solo los administradores podrán verlas.
         [HttpGet]
+        [AllowAnonymous] // Permite el acceso sin necesidad de ser Admin (si es público)
         public async Task<ActionResult<IEnumerable<Gasolineras>>> GetGasolineras()
         {
-            // CORREGIDO: Usamos Gasolineras (Plural)
             return await _context.Gasolinera.ToListAsync(); 
         }
 
         // 2. VER UNA (GET: api/gasolineras/5)
         [HttpGet("{id}")]
+        [AllowAnonymous] // Permite el acceso sin necesidad de ser Admin (si es público)
         public async Task<ActionResult<Gasolineras>> GetGasolinera(int id)
         {
-            // CORREGIDO: Usamos Gasolineras (Plural)
             var gasolinera = await _context.Gasolinera.FindAsync(id);
 
             if (gasolinera == null)
@@ -39,23 +48,22 @@ namespace GEOGAS.Api.Controllers
             return gasolinera;
         }
 
-        // 3. GUARDAR (POST: api/gasolineras)
+        // 3. GUARDAR (POST: api/gasolineras) - Protegido por [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<ActionResult<Gasolineras>> PostGasolinera(Gasolineras gasolinera)
         {
-            // CORREGIDO: Usamos Gasolineras (Plural)
             if (_context.Gasolinera.Any(g => g.place_id == gasolinera.place_id))
             {
                 return BadRequest("El place_id ya existe.");
             }
 
-            _context.Gasolinera.Add(gasolinera); // CORREGIDO: Usamos Gasolineras (Plural)
+            _context.Gasolinera.Add(gasolinera);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetGasolinera), new { id = gasolinera.place_id }, gasolinera);
         }
 
-        // 4. ACTUALIZAR (PUT: api/gasolineras/5) - Implementando patrón Fetch-Update
+        // 4. ACTUALIZAR (PUT: api/gasolineras/5) - Protegido por [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutGasolinera(int id, Gasolineras gasolinera)
         {
@@ -64,7 +72,6 @@ namespace GEOGAS.Api.Controllers
                 return BadRequest("El ID de la URL no coincide con el place_id del cuerpo.");
             }
             
-            // 1. BUSCAR la entidad existente
             var existingGasolinera = await _context.Gasolinera.FindAsync(id); 
 
             if (existingGasolinera == null)
@@ -72,21 +79,18 @@ namespace GEOGAS.Api.Controllers
                 return NotFound();
             }
 
-            // 2. ACTUALIZAR las propiedades manualmente (Recomendado)
+            // Actualización de propiedades
             existingGasolinera.Nombre = gasolinera.Nombre;
             existingGasolinera.cre_id = gasolinera.cre_id;
             existingGasolinera.x = gasolinera.x;
             existingGasolinera.y = gasolinera.y;
-            // Agrega aquí cualquier otra propiedad que pueda cambiar...
             
-            // 3. Guardar los cambios (EF Core solo actualiza lo que ha cambiado)
             try
             {
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
             {
-                // La verificación de existencia debe usar el DbSet plural corregido
                 if (!_context.Gasolinera.Any(e => e.place_id == id))
                 {
                     return NotFound();
@@ -100,11 +104,10 @@ namespace GEOGAS.Api.Controllers
             return NoContent();
         }
 
-        // 5. ELIMINAR (DELETE: api/gasolineras/5)
+        // 5. ELIMINAR (DELETE: api/gasolineras/5) - Protegido por [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteGasolinera(int id)
         {
-            // CORREGIDO: Usamos Gasolineras (Plural)
             var gasolinera = await _context.Gasolinera.FindAsync(id);
             if (gasolinera == null)
             {
@@ -116,6 +119,39 @@ namespace GEOGAS.Api.Controllers
 
             return NoContent();
         }
+
+        // =========================================================
+        // 6. SINCRONIZAR (POST: api/Gasolineras/sincronizar) - EXCLUSIVO PARA ADMINISTRADORES
+        // =========================================================
+
+        /// <summary>
+        /// Dispara la sincronización con la API externa y guarda solo los registros nuevos.
+        /// Este endpoint está protegido y solo puede ser llamado por un Admin autenticado.
+        /// </summary>
+        [HttpPost("sincronizar")] // Ruta: /api/Gasolineras/sincronizar
+        public async Task<IActionResult> SincronizarDatos()
+        {
+            try
+            {
+                // Llamamos al servicio para ejecutar la lógica de HttpClient y EF Core
+                var nuevosRegistros = await _sincronizacionService.SincronizarGasolinerasAsync();
+                
+                // Respuesta exitosa
+                return Ok(new { 
+                    mensaje = "Sincronización completada.", 
+                    nuevos_guardados = nuevosRegistros 
+                });
+            }
+            catch (HttpRequestException ex)
+            {
+                // Manejo de errores de conexión o API externa
+                return StatusCode(503, $"Error al conectar con la fuente externa: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                // Otros errores (JSON parsing, DB, etc.)
+                return StatusCode(500, $"Error interno durante la sincronización: {ex.Message}");
+            }
+        }
     }
-    
 }

@@ -95,6 +95,7 @@ El controlador de usuarios (v1.1.0) implementa un sistema de autenticación basa
 ## 📜 Historial de Versiones
 
 | Versión | Resumen de Cambios |
+|**v2.5.0**|Se creo la vista home en el archivo app.jsx con sus respectivos `componentes` para el mapa y botones, tambien se implemeto la api del mapa `leaflet` es un api para un map open sourt, tambien se hiso una api para la actulaizacion de la base de datos en el `front-end` en el caso del `back-end` se implemeto los servicios y se cambio el nombre del controlador para evitar confuciones de `Gasolineras` a `GasolinerasController`|
 |**v2.4.0**|Se creó el `RutaController` y se añadieron los DTOs de Ruta`RutaDTS` para manejar mejor los datos que recibe y envía la API, aplicar validaciones básicas y mantener separado el modelo interno de lo que se expone al cliente |
 |**v2.3.0**|Se creo la carpeta FROND-END para trabajar en las vistas|
 | **v2.1.0**| Se crearon los controladores para el resgistro y logeo de los usuarios (`AuthController`), Tambien se implementaron 2 nuevos servicios (`ImServicioJWT` y `JwtServices`) para que funcione el logeo y el registro de usuarios.|
