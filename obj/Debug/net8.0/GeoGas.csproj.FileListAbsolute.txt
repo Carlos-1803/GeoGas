@@ -352,3 +352,5 @@ C:\laragon\www\GeoGas\obj\Debug\net8.0\refint\GeoGas.dll
 C:\laragon\www\GeoGas\obj\Debug\net8.0\GeoGas.pdb
 C:\laragon\www\GeoGas\obj\Debug\net8.0\GeoGas.genruntimeconfig.cache
 C:\laragon\www\GeoGas\obj\Debug\net8.0\ref\GeoGas.dll
+C:\laragon\www\GeoGas\bin\Debug\net8.0\FROND-END\vite-project\package-lock.json
+C:\laragon\www\GeoGas\bin\Debug\net8.0\FROND-END\vite-project\package.json

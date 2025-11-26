@@ -4176,25 +4176,24 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\Carlos E\\.nuget\\packages\\": {}
+    "C:\\Users\\angel\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\code-web\\GeoGas\\GeoGas.csproj",
+      "projectUniqueName": "C:\\laragon\\www\\GeoGas\\GeoGas.csproj",
       "projectName": "GeoGas",
-      "projectPath": "C:\\code-web\\GeoGas\\GeoGas.csproj",
-      "packagesPath": "C:\\Users\\Carlos E\\.nuget\\packages\\",
-      "outputPath": "C:\\code-web\\GeoGas\\obj\\",
+      "projectPath": "C:\\laragon\\www\\GeoGas\\GeoGas.csproj",
+      "packagesPath": "C:\\Users\\angel\\.nuget\\packages\\",
+      "outputPath": "C:\\laragon\\www\\GeoGas\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\Carlos E\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        "C:\\Users\\angel\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net8.0"
       ],
       "sources": {
-        "C:\\Program Files\\dotnet\\library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
@@ -4276,7 +4275,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.411/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.407/PortableRuntimeIdentifierGraph.json"
       }
     }
   }
