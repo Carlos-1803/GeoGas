@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
+using GEOGAS.Models;
 
 namespace GEOGAS.Api.Models
 {
@@ -10,11 +13,14 @@ namespace GEOGAS.Api.Models
         [Key]
         public int Id { get; set; }
         public required string tipo {get; set; }
-        public int presio {get; set; }
+        public decimal presio {get; set; }
         
 
         // Propiedad para la relación (Clave Foránea)
        //  public int UserId { get; set; } 
          public int Gasolinerasplace_id { get; set; }
+
+         [JsonIgnore] 
+    public Gasolineras? Gasolinera { get; set; }
     }
 }

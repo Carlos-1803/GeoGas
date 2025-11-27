@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
+using GEOGAS.Api.Models;
 
 namespace GEOGAS.Models
 {
@@ -19,6 +20,7 @@ namespace GEOGAS.Models
 
         // Propiedad para la relación (Clave Foránea)
        // public int UserId { get; set; } 
-         
+         [JsonIgnore]
+    public List<Presio_Gas> Precios { get; set; } = new List<Presio_Gas>();
     }
 }

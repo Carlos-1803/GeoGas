@@ -4,6 +4,8 @@ using GEOGAS.Api.Models;
 using GEOGAS.Api.Data;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Linq;
+using Microsoft.AspNetCore.Authorization; // Nuevo: Para proteger el endpoint
 
 namespace GEOGAS.Api.Controllers
 {
@@ -12,17 +14,51 @@ namespace GEOGAS.Api.Controllers
     public class PresioGasController : ControllerBase
     {
         private readonly MyDbContext _context;
+        private readonly IDataSyncService _dataSyncService; // Nuevo: Servicio de sincronización
 
-        public PresioGasController(MyDbContext context)
+        // Inyección de dependencias del DbContext y el nuevo servicio de sincronización
+        public PresioGasController(MyDbContext context, IDataSyncService dataSyncService)
         {
             _context = context;
+            _dataSyncService = dataSyncService;
         }
+
+        // =========================================================
+        // NUEVO ENDPOINT PARA LA ACTUALIZACIÓN MANUAL
+        // =========================================================
+
+        /// <summary>
+        /// Ejecuta el proceso de sincronización de datos con la API externa.
+        /// Este endpoint debe estar protegido (usando [Authorize]) para que solo 
+        /// administradores o sistemas puedan llamarlo.
+        /// </summary>
+        [HttpPost("actualizar")]
+      //  [Authorize] // Protege este endpoint, ¡asegúrate que solo usuarios autorizados puedan llamarlo!
+        public async Task<IActionResult> ActualizarPreciosDesdeAPI()
+        {
+            var success = await _dataSyncService.SyncGasPricesAsync();
+
+            if (success)
+            {
+                return Ok(new { message = "Sincronización de precios de gas completada exitosamente." });
+            }
+            else
+            {
+                // Devolvemos un 500 Internal Server Error si el servicio falló.
+                return StatusCode(500, new { message = "Fallo en la sincronización de precios. Revise los logs del servidor." });
+            }
+        }
+        
+        // =========================================================
+        // MÉTODOS EXISTENTES (GET, POST, PUT, DELETE)
+        // =========================================================
 
         // GET: api/PresioGas
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Presio_Gas>>> GetPreciosGas()
         {
-            return await _context.presio_Gas.ToListAsync();
+            return await _context.presio_Gas.Take(500) // Limita la consulta a solo los primeros 500 registros
+        .ToListAsync(); ;
         }
 
         // GET: api/PresioGas/5
@@ -88,6 +124,7 @@ namespace GEOGAS.Api.Controllers
 
         // POST: api/PresioGas
         [HttpPost]
+       // [Authorize]
         public async Task<ActionResult<Presio_Gas>> PostPresioGas(Presio_Gas presioGas)
         {
             // Validar que la gasolinera exista
@@ -105,6 +142,7 @@ namespace GEOGAS.Api.Controllers
 
         // PUT: api/PresioGas/5
         [HttpPut("{id}")]
+     //   [Authorize]
         public async Task<IActionResult> PutPresioGas(int id, Presio_Gas presioGas)
         {
             if (id != presioGas.Id)
@@ -143,6 +181,7 @@ namespace GEOGAS.Api.Controllers
     
         // DELETE: api/PresioGas/5
         [HttpDelete("{id}")]
+      //  [Authorize]
         public async Task<IActionResult> DeletePresioGas(int id)
         {
             var presioGas = await _context.presio_Gas.FindAsync(id);

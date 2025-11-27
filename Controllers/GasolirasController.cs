@@ -3,39 +3,40 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization; // Necesario para [Authorize]
 using GEOGAS.Api.Data;  
 using GEOGAS.Models; 
-using GEOGAS.Api.Services; // ¡Importamos el servicio de sincronización!
+using GEOGAS.Api.Services; // Importamos el namespace para usar IDataSyncService
 
 namespace GEOGAS.Api.Controllers
 {
-    // 1. Aplicamos la restricción de seguridad a nivel de controlador.
-   // [Authorize(Roles = "Admin")]
+    // [Authorize(Roles = "Admin")]
     [Route("api/[controller]")]
     [ApiController]
     public class GasolinerasController : ControllerBase
     {
         private readonly MyDbContext _context;
-        private readonly SincronizacionService _sincronizacionService; // Declaramos el servicio
+        // CORRECCIÓN CLAVE: Usamos la interfaz registrada en Program.cs
+        private readonly IDataSyncService _dataSyncService; 
 
         // Constructor con Inyección de Dependencias
-        public GasolinerasController(MyDbContext context, SincronizacionService sincronizacionService)
+        public GasolinerasController(MyDbContext context, IDataSyncService dataSyncService)
         {
             _context = context;
-            _sincronizacionService = sincronizacionService; // Inicializamos el servicio
+            // Inicializamos el servicio usando la interfaz
+            _dataSyncService = dataSyncService; 
         }
 
         // 1. VER TODAS (GET: api/gasolineras)
-        // Aunque el controlador está protegido, puedes permitir el acceso público a solo este método si deseas.
-        // Si no se especifica [AllowAnonymous], solo los administradores podrán verlas.
         [HttpGet]
-        [AllowAnonymous] // Permite el acceso sin necesidad de ser Admin (si es público)
+        [AllowAnonymous] 
         public async Task<ActionResult<IEnumerable<Gasolineras>>> GetGasolineras()
         {
-            return await _context.Gasolinera.ToListAsync(); 
+            return await _context.Gasolinera
+        .Take(500) // Limita la consulta a solo los primeros 500 registros
+        .ToListAsync(); 
         }
 
         // 2. VER UNA (GET: api/gasolineras/5)
         [HttpGet("{id}")]
-        [AllowAnonymous] // Permite el acceso sin necesidad de ser Admin (si es público)
+        [AllowAnonymous] 
         public async Task<ActionResult<Gasolineras>> GetGasolinera(int id)
         {
             var gasolinera = await _context.Gasolinera.FindAsync(id);
@@ -48,7 +49,7 @@ namespace GEOGAS.Api.Controllers
             return gasolinera;
         }
 
-        // 3. GUARDAR (POST: api/gasolineras) - Protegido por [Authorize(Roles = "Admin")]
+        // 3. GUARDAR (POST: api/gasolineras)
         [HttpPost]
         public async Task<ActionResult<Gasolineras>> PostGasolinera(Gasolineras gasolinera)
         {
@@ -63,7 +64,7 @@ namespace GEOGAS.Api.Controllers
             return CreatedAtAction(nameof(GetGasolinera), new { id = gasolinera.place_id }, gasolinera);
         }
 
-        // 4. ACTUALIZAR (PUT: api/gasolineras/5) - Protegido por [Authorize(Roles = "Admin")]
+        // 4. ACTUALIZAR (PUT: api/gasolineras/5)
         [HttpPut("{id}")]
         public async Task<IActionResult> PutGasolinera(int id, Gasolineras gasolinera)
         {
@@ -104,7 +105,7 @@ namespace GEOGAS.Api.Controllers
             return NoContent();
         }
 
-        // 5. ELIMINAR (DELETE: api/gasolineras/5) - Protegido por [Authorize(Roles = "Admin")]
+        // 5. ELIMINAR (DELETE: api/gasolineras/5)
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteGasolinera(int id)
         {
@@ -121,7 +122,7 @@ namespace GEOGAS.Api.Controllers
         }
 
         // =========================================================
-        // 6. SINCRONIZAR (POST: api/Gasolineras/sincronizar) - EXCLUSIVO PARA ADMINISTRADORES
+        // 6. SINCRONIZAR (POST: api/Gasolineras/sincronizar)
         // =========================================================
 
         /// <summary>
@@ -133,13 +134,13 @@ namespace GEOGAS.Api.Controllers
         {
             try
             {
-                // Llamamos al servicio para ejecutar la lógica de HttpClient y EF Core
-                var nuevosRegistros = await _sincronizacionService.SincronizarGasolinerasAsync();
+                // Llamamos al servicio a través de la interfaz
+                var nuevosRegistros = await _dataSyncService.SyncGasPricesAsync();
                 
                 // Respuesta exitosa
                 return Ok(new { 
                     mensaje = "Sincronización completada.", 
-                    nuevos_guardados = nuevosRegistros 
+                    registros_procesados = nuevosRegistros 
                 });
             }
             catch (HttpRequestException ex)
@@ -149,7 +150,7 @@ namespace GEOGAS.Api.Controllers
             }
             catch (Exception ex)
             {
-                // Otros errores (JSON parsing, DB, etc.)
+                // Otros errores (XML parsing, DB, etc.)
                 return StatusCode(500, $"Error interno durante la sincronización: {ex.Message}");
             }
         }

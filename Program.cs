@@ -1,12 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using GEOGAS.Api.Data; 
 using Pomelo.EntityFrameworkCore.MySql.Infrastructure; 
-using Microsoft.AspNetCore.Identity; // Nuevo: Para el PasswordHasher
-using Microsoft.AspNetCore.Authentication.JwtBearer; // Nuevo: Para la autenticación JWT
-using Microsoft.IdentityModel.Tokens; // Nuevo: Para SymmetricSecurityKey
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using GEOGAS.Api.Models;
 using GEOGAS.Api.Services;
+using Microsoft.Extensions.Logging; 
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,25 +18,38 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<MyDbContext>(options =>
     options.UseMySql(
         connectionString,
-        ServerVersion.AutoDetect(connectionString), 
+        new MySqlServerVersion(new Version(8, 0, 21)), 
         mySqlOptions => mySqlOptions.EnableRetryOnFailure() 
     )
 );
-    builder.Services.AddScoped<IUserService, UserService>();
-    builder.Services.AddControllers();
 // --- FIN: CONFIGURACIÓN DE LA BASE DE DATOS Y CONTEXTO ---
+
+
+// =========================================================
+// --- REGISTRO DE SERVICIOS CUSTOM ---
+// =========================================================
+
 // Servicios de Lógica de Negocio y Repositorios
 builder.Services.AddScoped<IUserService, UserService>();
-// ¡SOLUCIÓN! Registro del Servicio de JWT
 builder.Services.AddScoped<IJwtService, JwtService>();
 
-// =========================================================
-// --- INICIO: CONFIGURACIÓN DE SEGURIDAD (PASSWORD HASHING Y JWT) ---
-// =========================================================
+// REGISTRO DEL NUEVO SERVICIO DE SINCRONIZACIÓN (Interfaz)
+builder.Services.AddScoped<IDataSyncService, DataSyncService>();
+
+// ====================================================================================
+// CORRECCIÓN CLAVE: El controlador pide "SincronizacionService" (la clase concreta), 
+// pero no está registrado. Asumo que el controlador se refiere a DataSyncService,
+// por lo que mapearé el nombre incorrecto a la implementación correcta.
+// Si tienes una clase llamada SincronizacionService, usa esa clase en su lugar.
+// Ya que no tengo esa clase, usaré DataSyncService como implementación.
+// ====================================================================================
+builder.Services.AddScoped<SincronizacionService>(provider => 
+    (SincronizacionService)provider.GetRequiredService<IDataSyncService>()
+);
+// ------------------------------------------------------------------------------------
+
 
 // 1. Registro del Password Hashing
-// Utilizamos el PasswordHasher de ASP.NET Identity para encriptar contraseñas de manera segura (con salt y hashing costoso).
-// Lo inyectaremos en el servicio de usuarios o directamente en el controlador.
 IServiceCollection serviceCollection = builder.Services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
 
 
@@ -46,38 +60,42 @@ var key = Encoding.ASCII.GetBytes(secretKey);
 
 builder.Services.AddAuthentication(options =>
 {
-    // Indicar que JWT Bearer es el esquema de autenticación por defecto
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 })
 .AddJwtBearer(options =>
 {
-    options.RequireHttpsMetadata = false; // Cambiar a true en producción
+    options.RequireHttpsMetadata = false;
     options.SaveToken = true;
     options.TokenValidationParameters = new TokenValidationParameters
     {
-        ValidateIssuerSigningKey = true, // Esencial: Verificar que la firma es auténtica
-        IssuerSigningKey = new SymmetricSecurityKey(key), // Usar la clave secreta
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(key),
         
-        ValidateIssuer = true, // Validar el emisor
+        ValidateIssuer = true,
         ValidIssuer = jwtSettings["Issuer"],
         
-        ValidateAudience = true, // Validar la audiencia
+        ValidateAudience = true,
         ValidAudience = jwtSettings["Audience"],
         
-        ValidateLifetime = true, // Validar la expiración del token
-        ClockSkew = TimeSpan.Zero // No dar margen de tiempo en la expiración
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.Zero
     };
 });
 
-// =========================================================
-// --- FIN: CONFIGURACIÓN DE SEGURIDAD ---
-// =========================================================
-
-
 builder.Services.AddControllers(); 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+// ====================================================================================
+// CORRECCIÓN PARA EVITAR EL ERROR "Maximum call stack size exceeded" en Swagger UI
+// ====================================================================================
+builder.Services.AddSwaggerGen(c =>
+{
+    c.CustomSchemaIds(type => type.FullName);
+    c.IgnoreObsoleteProperties();
+});
+// ====================================================================================
+
 
 var app = builder.Build();
 
@@ -87,16 +105,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-
-// =========================================================
-// --- MIDDLEWARE DE SEGURIDAD (COLOCAR EN ESTE ORDEN) ---
-// =========================================================
-
-
-app.UseAuthentication(); // 1. Identifica y valida el token JWT
-app.UseAuthorization();  // 2. Verifica si el usuario autenticado tiene permisos para el endpoint
-
-// =========================================================
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers(); 
 
@@ -125,4 +135,13 @@ app.Run();
 record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 {
     public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+}
+
+// Clase Placeholder:
+// Se necesita una declaración de clase para que el compilador sepa qué es SincronizacionService.
+// Si esta clase no existe en tu proyecto, es la causa del error.
+public class SincronizacionService : IDataSyncService
+{
+    // Solo un placeholder para satisfacer el registro
+    public Task<bool> SyncGasPricesAsync() => throw new NotImplementedException();
 }
