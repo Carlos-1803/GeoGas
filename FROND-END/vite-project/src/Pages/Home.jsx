@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./home.css";
+import LeafletMap from "../components/LeafletMap";
 
 function App() {
   const [activeTab, setActiveTab] = useState("inicio");
@@ -16,17 +17,17 @@ function App() {
   const summaryData = [
     {
       label: "Estaciones cercanas",
-      value: "12",
+      value: "0",
       hint: "En un radio de 5 km"
     },
     {
       label: "Mejor precio hoy",
-      value: "$23.40",
+      value: "$0",
       hint: "Magna · Gasolinera Centro"
     },
     {
       label: "Rendimiento estimado",
-      value: "420 km",
+      value: "0 km",
       hint: "Con tu tanque actual"
     }
   ];
@@ -96,10 +97,10 @@ function App() {
 
             {/* Contenedor donde luego integrarás el mapa real (Leaflet, Google Maps, etc.) */}
             <div className="map-placeholder">
+              <LeafletMap showFilters={showFilters} />
               <span className="map-placeholder-text">
-                {showFilters 
-                  ? "Mapa mostrando estaciones filtradas (12 resultados)" 
-                  : "Zona reservada para el mapa"}
+                
+                
               </span>
             </div>
           </div>
