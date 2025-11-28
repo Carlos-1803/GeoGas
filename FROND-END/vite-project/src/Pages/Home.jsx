@@ -2,17 +2,19 @@ import React, { useState } from "react";
 import "./home.css";
 import LeafletMap from "../components/LeafletMap";
 import RouteModal from "../components/RouteModal";
+import CarsModal from "../components/CarsModal"; // Importa el nuevo modal
 
-function App() {
+function Home({ onLogout }) {
   const [activeTab, setActiveTab] = useState("inicio");
   const [showFilters, setShowFilters] = useState(false);
   const [showRouteModal, setShowRouteModal] = useState(false);
+  const [showCarsModal, setShowCarsModal] = useState(false); // Nuevo estado para coches
   const [routeData, setRouteData] = useState(null);
 
   const navItems = [
     { id: "inicio", icon: "🏠", label: "Inicio" },
     { id: "estaciones", icon: "⛽", label: "Estaciones" },
-    { id: "favoritos", icon: "⭐", label: "Favoritos" },
+    { id: "coches", icon: "🚗", label: "Coches" },
     { id: "rutas", icon: "🧭", label: "Rutas" },
     { id: "perfil", icon: "👤", label: "Perfil" }
   ];
@@ -37,16 +39,26 @@ function App() {
 
   // Función para manejar el clic en el botón de rutas
   const handleRouteClick = () => {
-    // Datos de ejemplo basados en tu modelo C# (sin userId)
     const mockRouteData = {
       ubicacion: "Av. Principal #123, Ciudad",
       destino: "Gasolinera Premium Center", 
       distancia: 3.2
-      // userId removido
     };
     
     setRouteData(mockRouteData);
     setShowRouteModal(true);
+  };
+
+  // Función para manejar el clic en el botón de coches
+  const handleCarsClick = () => {
+    setShowCarsModal(true);
+  };
+
+  // Función para manejar acciones de perfil (incluyendo logout)
+  const handleProfileClick = () => {
+    // Aquí puedes agregar más lógica para el perfil
+    // Por ahora solo maneja el logout
+    onLogout();
   };
 
   return (
@@ -67,7 +79,11 @@ function App() {
 
         <div className="top-bar-right">
           {/* Botón de perfil */}
-          <button className="icon-button profile-btn" aria-label="Perfil de usuario">
+          <button 
+            className="icon-button profile-btn" 
+            aria-label="Perfil de usuario"
+            onClick={handleProfileClick}
+          >
             <span className="avatar">RR</span>
           </button>
 
@@ -112,13 +128,10 @@ function App() {
               </button>
             </div>
 
-            {/* Contenedor donde luego integrarás el mapa real (Leaflet, Google Maps, etc.) */}
+            {/* Contenedor del mapa */}
             <div className="map-placeholder">
               <LeafletMap showFilters={showFilters} />
-              <span className="map-placeholder-text">
-                
-                
-              </span>
+              <span className="map-placeholder-text"></span>
             </div>
           </div>
         </section>
@@ -135,6 +148,12 @@ function App() {
               if (item.id === "rutas") {
                 handleRouteClick();
               }
+              if (item.id === "coches") {
+                handleCarsClick();
+              }
+              if (item.id === "perfil") {
+                handleProfileClick();
+              }
             }}
           >
             <span className="nav-icon">{item.icon}</span>
@@ -149,8 +168,14 @@ function App() {
         onClose={() => setShowRouteModal(false)}
         routeData={routeData}
       />
+
+      {/* ===== NUEVO MODAL DE COCHES ===== */}
+      <CarsModal 
+        isOpen={showCarsModal}
+        onClose={() => setShowCarsModal(false)}
+      />
     </div>
   );
 }
 
-export default App;
+export default Home;

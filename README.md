@@ -95,7 +95,8 @@ El controlador de usuarios (v1.1.0) implementa un sistema de autenticación basa
 ## 📜 Historial de Versiones
 
 | Versión | Resumen de Cambios |
-|**v2.8.0**|se creo `RouteModal` y `RouteModal` para la visualizacion de una venta emergente de la generacion de ruta 
+|**v2.9.1**|se realizo una ventana emergente para la visualizacion de coches
+|**v2.9.0**|se creo `RouteModal` y `RouteModal` para la visualizacion de una venta emergente de la generacion de ruta 
 |**v2.8.0**|Se implemeto la vista del login y registro tambien se mejoro el home y se añadio un welcome|
 |**v2.7.0**|Se implemeto el mapa en la vista que lalo hiso y no comento en readme. terrible|
 |**V2.6.0**| Se implemeto el un metodo llamado fecht para actualizar la base de datos automaticamente y no tenerlo que subir automaticamente esto se implemento en los controladores de   `GasolinaerasController` y `PresiosController`|
