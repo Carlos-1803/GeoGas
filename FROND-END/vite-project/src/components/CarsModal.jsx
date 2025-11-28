@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./CarsModal.css";
 
 const CarsModal = ({ isOpen, onClose }) => {
@@ -8,75 +8,172 @@ const CarsModal = ({ isOpen, onClose }) => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [carFound, setCarFound] = useState(null);
+  const [userCars, setUserCars] = useState([]);
+  const [cochePrincipal, setCochePrincipal] = useState(null);
 
-  if (!isOpen) return null;
+  // Configuración de API
+  const API_BASE_URL = 'http://localhost:5287';
+  const COCHES_ENDPOINT = '/api/Coche';
 
-  // Base de datos simulada de coches
-  const carDatabase = [
-    { id: 1, marca: "Toyota", modelo: "Corolla 2023", rendimiento: "15.2 km/L", tipoCombustible: "Gasolina" },
-    { id: 2, marca: "Nissan", modelo: "Versa 2024", rendimiento: "14.8 km/L", tipoCombustible: "Gasolina" },
-    { id: 3, marca: "Mazda", modelo: "CX-5 2023", rendimiento: "12.5 km/L", tipoCombustible: "Gasolina Premium" },
-    { id: 4, marca: "Honda", modelo: "Civic 2023", rendimiento: "16.1 km/L", tipoCombustible: "Gasolina" },
-    { id: 5, marca: "Volkswagen", modelo: "Jetta 2024", rendimiento: "13.9 km/L", tipoCombustible: "Gasolina" },
-    { id: 6, marca: "Hyundai", modelo: "Tucson 2023", rendimiento: "11.8 km/L", tipoCombustible: "Gasolina" },
-    { id: 7, marca: "Kia", modelo: "Rio 2024", rendimiento: "15.5 km/L", tipoCombustible: "Gasolina" },
-    { id: 8, marca: "Ford", modelo: "Focus 2023", rendimiento: "14.2 km/L", tipoCombustible: "Gasolina" }
-  ];
-
-  // Datos de ejemplo para los coches del usuario
-  const userCars = [
-    {
-      id: 1,
-      marca: "Toyota",
-      modelo: "Corolla 2023",
-      imagen: "🚗",
-      tipoCombustible: "Gasolina",
-      rendimiento: "15.2 km/L",
-      estado: "Activo"
-    },
-    {
-      id: 2,
-      marca: "Nissan",
-      modelo: "Versa 2024",
-      imagen: "🚙",
-      tipoCombustible: "Gasolina",
-      rendimiento: "14.8 km/L",
-      estado: "Activo"
+  // Cargar coches del usuario al abrir el modal
+  useEffect(() => {
+    if (isOpen) {
+      cargarCochesUsuario();
     }
-  ];
+  }, [isOpen]);
 
+  // Función para cargar los coches del usuario desde el backend
+  const cargarCochesUsuario = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}${COCHES_ENDPOINT}`);
+      
+      if (!response.ok) {
+        throw new Error('Error al cargar los coches');
+      }
+      
+      const coches = await response.json();
+      setUserCars(coches);
+      
+      // Establecer el primer coche como principal (puedes modificar esta lógica)
+      if (coches.length > 0) {
+        setCochePrincipal(coches[0]);
+      }
+      
+    } catch (error) {
+      console.error('Error cargando coches:', error);
+      setError('Error al cargar los coches del usuario');
+    }
+  };
+
+  // Función para buscar coche en la base de datos
   const handleSearchCar = async (e) => {
     e.preventDefault();
     setError("");
     setCarFound(null);
     setLoading(true);
 
-    // Simular búsqueda en base de datos
-    setTimeout(() => {
-      const foundCar = carDatabase.find(car => 
-        car.marca.toLowerCase() === marca.toLowerCase() && 
-        car.modelo.toLowerCase() === modelo.toLowerCase()
-      );
-
-      if (foundCar) {
-        setCarFound(foundCar);
+    try {
+      // Buscar en la base de datos usando el endpoint de búsqueda
+      const response = await fetch(`${API_BASE_URL}${COCHES_ENDPOINT}/buscar?termino=${encodeURIComponent(marca + ' ' + modelo)}`);
+      
+      if (!response.ok) {
+        throw new Error('Error en la búsqueda');
+      }
+      
+      const resultados = await response.json();
+      
+      if (resultados && resultados.length > 0) {
+        // Tomar el primer resultado que coincida
+        const foundCar = resultados[0];
+        setCarFound({
+          ...foundCar,
+          rendimiento: "15.2 km/L", // Estos datos podrían venir del backend
+          tipoCombustible: "Gasolina"
+        });
         setError("");
       } else {
         setError("Lo sentimos, tu coche no está registrado en nuestra base de datos.");
         setCarFound(null);
       }
+      
+    } catch (error) {
+      console.error('Error buscando coche:', error);
+      setError("Error al buscar el coche en la base de datos");
+      setCarFound(null);
+    } finally {
       setLoading(false);
-    }, 1500);
+    }
   };
 
-  const handleAddCar = () => {
-    // Aquí iría la lógica para agregar el coche a la lista del usuario
-    alert(`Coche ${carFound.marca} ${carFound.modelo} agregado exitosamente!`);
-    setShowForm(false);
-    setMarca("");
-    setModelo("");
-    setCarFound(null);
-    setError("");
+  // Función para agregar coche a la base de datos
+  const handleAddCar = async () => {
+    if (!carFound) return;
+
+    setLoading(true);
+    try {
+      const nuevoCoche = {
+        marca: carFound.marca,
+        modelo: carFound.modelo,
+        // Puedes agregar más campos aquí según tu modelo Coche
+        año: new Date().getFullYear(), // Ejemplo, ajusta según necesites
+        rendimiento: carFound.rendimiento,
+        tipoCombustible: carFound.tipoCombustible
+      };
+
+      const response = await fetch(`${API_BASE_URL}${COCHES_ENDPOINT}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(nuevoCoche)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error al agregar el coche');
+      }
+
+      const cocheGuardado = await response.json();
+      
+      // Actualizar la lista de coches
+      await cargarCochesUsuario();
+      
+      // Mostrar mensaje de éxito
+      alert(`Coche ${cocheGuardado.marca} ${cocheGuardado.modelo} agregado exitosamente!`);
+      
+      // Resetear formulario
+      resetForm();
+      
+    } catch (error) {
+      console.error('Error agregando coche:', error);
+      setError(`Error al agregar el coche: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Función para establecer coche como principal
+  const handleSetPrincipal = async (coche) => {
+    try {
+      setCochePrincipal(coche);
+      // Aquí podrías hacer una llamada al backend para marcar como principal
+      // si tu modelo lo soporta
+      alert(`${coche.marca} ${coche.modelo} establecido como coche principal`);
+    } catch (error) {
+      console.error('Error estableciendo coche principal:', error);
+      setError('Error al establecer coche principal');
+    }
+  };
+
+  // Función para eliminar coche
+  const handleDeleteCar = async (id) => {
+    if (!window.confirm('¿Estás seguro de que quieres eliminar este coche?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}${COCHES_ENDPOINT}/${id}`, {
+        method: 'DELETE'
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al eliminar el coche');
+      }
+
+      // Actualizar la lista de coches
+      await cargarCochesUsuario();
+      
+      // Si el coche eliminado era el principal, actualizar
+      if (cochePrincipal && cochePrincipal.id === id) {
+        setCochePrincipal(userCars[1] || null);
+      }
+      
+      alert('Coche eliminado exitosamente');
+      
+    } catch (error) {
+      console.error('Error eliminando coche:', error);
+      setError('Error al eliminar el coche');
+    }
   };
 
   const resetForm = () => {
@@ -87,6 +184,8 @@ const CarsModal = ({ isOpen, onClose }) => {
     setCarFound(null);
     setLoading(false);
   };
+
+  if (!isOpen) return null;
 
   // Renderizar formulario de agregar coche
   if (showForm) {
@@ -126,7 +225,7 @@ const CarsModal = ({ isOpen, onClose }) => {
                   className="form-input"
                   value={modelo}
                   onChange={(e) => setModelo(e.target.value)}
-                  placeholder="Ej: Corolla 2023, Versa 2024..."
+                  placeholder="Ej: Corolla, Versa, Civic..."
                   required
                 />
               </div>
@@ -134,7 +233,7 @@ const CarsModal = ({ isOpen, onClose }) => {
               <button 
                 type="submit" 
                 className="modal-action-btn primary search-btn"
-                disabled={loading}
+                disabled={loading || !marca || !modelo}
               >
                 {loading ? (
                   <>
@@ -186,9 +285,19 @@ const CarsModal = ({ isOpen, onClose }) => {
                 <button 
                   className="modal-action-btn primary add-btn"
                   onClick={handleAddCar}
+                  disabled={loading}
                 >
-                  <span>➕</span>
-                  Agregar a Mis Coches
+                  {loading ? (
+                    <>
+                      <span className="loading-spinner">⏳</span>
+                      Guardando...
+                    </>
+                  ) : (
+                    <>
+                      <span>➕</span>
+                      Agregar a Mis Coches
+                    </>
+                  )}
                 </button>
               </div>
             )}
@@ -198,7 +307,7 @@ const CarsModal = ({ isOpen, onClose }) => {
               <h3>💡 Sugerencias</h3>
               <p>
                 Asegúrate de escribir la marca y modelo exactos. 
-                Ejemplo: "Toyota Corolla 2023" o "Nissan Versa 2024"
+                Ejemplo: "Toyota Corolla" o "Nissan Versa"
               </p>
             </div>
           </div>
@@ -234,44 +343,78 @@ const CarsModal = ({ isOpen, onClose }) => {
 
         {/* Contenido del modal */}
         <div className="modal-body">
+          {/* Mensaje de error global */}
+          {error && (
+            <div className="error-message">
+              <span className="error-icon">⚠️</span>
+              {error}
+            </div>
+          )}
+
           {/* Tarjeta de coche principal */}
-          <div className="data-grid">
-            <div className="data-item" style={{background: 'rgba(34, 197, 94, 0.1)', borderColor: 'rgba(34, 197, 94, 0.4)'}}>
-              <div className="data-label">
-                <span>⭐</span>
-                Coche Principal
-              </div>
-              <div className="data-value">
-                Toyota Corolla 2023
+          {cochePrincipal && (
+            <div className="data-grid">
+              <div className="data-item principal-car">
+                <div className="data-label">
+                  <span>⭐</span>
+                  Coche Principal
+                </div>
+                <div className="data-value">
+                  <strong>{cochePrincipal.marca} {cochePrincipal.modelo}</strong>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Lista de todos los coches */}
           <div className="data-grid">
             <h3 style={{color: '#bbf7d0', fontSize: '16px', margin: '0 0 12px 0'}}>
-              Todos mis coches
+              Todos mis coches ({userCars.length})
             </h3>
             
-            {userCars.map((car) => (
-              <div key={car.id} className="data-item">
-                <div className="data-label">
-                  <span>{car.imagen}</span>
-                  {car.marca} {car.modelo}
-                </div>
-                <div className="data-value" style={{display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px'}}>
-                  <span style={{fontSize: '12px', color: '#a7f3d0'}}>
-                    {car.tipoCombustible}
-                  </span>
-                  <span style={{fontSize: '12px', color: '#f9fafb'}}>
-                    {car.rendimiento}
-                  </span>
-                  <span className={`status-badge ${car.estado.toLowerCase()}`}>
-                    {car.estado}
-                  </span>
-                </div>
+            {userCars.length === 0 ? (
+              <div className="no-cars-message">
+                <span>🚗</span>
+                <p>No tienes coches registrados</p>
+                <button 
+                  className="modal-action-btn primary"
+                  onClick={() => setShowForm(true)}
+                >
+                  Agregar tu primer coche
+                </button>
               </div>
-            ))}
+            ) : (
+              userCars.map((car) => (
+                <div key={car.id} className="data-item car-item">
+                  <div className="data-label">
+                    <span>🚗</span>
+                    {car.marca} {car.modelo}
+                  </div>
+                  <div className="data-value" style={{display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px'}}>
+                    <span style={{fontSize: '12px', color: '#a7f3d0'}}>
+                      {car.tipoCombustible || "Gasolina"}
+                    </span>
+                    <span style={{fontSize: '12px', color: '#f9fafb'}}>
+                      {car.rendimiento || "15.2 km/L"}
+                    </span>
+                    <div className="car-actions">
+                      <button 
+                        className="action-btn primary"
+                        onClick={() => handleSetPrincipal(car)}
+                      >
+                        Principal
+                      </button>
+                      <button 
+                        className="action-btn danger"
+                        onClick={() => handleDeleteCar(car.id)}
+                      >
+                        Eliminar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
 
           {/* Información adicional */}
@@ -292,9 +435,11 @@ const CarsModal = ({ isOpen, onClose }) => {
           >
             Agregar Nuevo Coche
           </button>
-          <button className="modal-action-btn primary">
-            Establecer como Principal
-          </button>
+          {userCars.length > 0 && (
+            <button className="modal-action-btn primary">
+              Gestionar Coches
+            </button>
+          )}
         </div>
       </div>
     </div>

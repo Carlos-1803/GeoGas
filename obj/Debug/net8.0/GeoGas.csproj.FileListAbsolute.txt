@@ -2,7 +2,6 @@ C:\laragon\www\GeoGas\bin\Debug\net8.0\appsettings.Development.json
 C:\laragon\www\GeoGas\bin\Debug\net8.0\appsettings.json
 C:\laragon\www\GeoGas\bin\Debug\net8.0\FROND-END\vite-project\package-lock.json
 C:\laragon\www\GeoGas\bin\Debug\net8.0\FROND-END\vite-project\package.json
-C:\laragon\www\GeoGas\bin\Debug\net8.0\GeoGas.staticwebassets.endpoints.json
 C:\laragon\www\GeoGas\bin\Debug\net8.0\GeoGas.exe
 C:\laragon\www\GeoGas\bin\Debug\net8.0\GeoGas.deps.json
 C:\laragon\www\GeoGas\bin\Debug\net8.0\GeoGas.runtimeconfig.json
@@ -131,7 +130,6 @@ C:\laragon\www\GeoGas\bin\Debug\net8.0\zh-Hans\Microsoft.CodeAnalysis.Workspaces
 C:\laragon\www\GeoGas\bin\Debug\net8.0\zh-Hant\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
 C:\laragon\www\GeoGas\bin\Debug\net8.0\runtimes\browser\lib\net8.0\System.Text.Encodings.Web.dll
 C:\laragon\www\GeoGas\obj\Debug\net8.0\GeoGas.csproj.AssemblyReference.cache
-C:\laragon\www\GeoGas\obj\Debug\net8.0\rpswa.dswa.cache.json
 C:\laragon\www\GeoGas\obj\Debug\net8.0\GeoGas.GeneratedMSBuildEditorConfig.editorconfig
 C:\laragon\www\GeoGas\obj\Debug\net8.0\GeoGas.AssemblyInfoInputs.cache
 C:\laragon\www\GeoGas\obj\Debug\net8.0\GeoGas.AssemblyInfo.cs
@@ -139,15 +137,9 @@ C:\laragon\www\GeoGas\obj\Debug\net8.0\GeoGas.csproj.CoreCompileInputs.cache
 C:\laragon\www\GeoGas\obj\Debug\net8.0\GeoGas.MvcApplicationPartsAssemblyInfo.cs
 C:\laragon\www\GeoGas\obj\Debug\net8.0\GeoGas.MvcApplicationPartsAssemblyInfo.cache
 C:\laragon\www\GeoGas\obj\Debug\net8.0\GeoGas.sourcelink.json
-C:\laragon\www\GeoGas\obj\Debug\net8.0\rjimswa.dswa.cache.json
-C:\laragon\www\GeoGas\obj\Debug\net8.0\rjsmrazor.dswa.cache.json
-C:\laragon\www\GeoGas\obj\Debug\net8.0\rjsmcshtml.dswa.cache.json
 C:\laragon\www\GeoGas\obj\Debug\net8.0\scopedcss\bundle\GeoGas.styles.css
 C:\laragon\www\GeoGas\obj\Debug\net8.0\staticwebassets.build.json
-C:\laragon\www\GeoGas\obj\Debug\net8.0\staticwebassets.build.json.cache
 C:\laragon\www\GeoGas\obj\Debug\net8.0\staticwebassets.development.json
-C:\laragon\www\GeoGas\obj\Debug\net8.0\staticwebassets.build.endpoints.json
-C:\laragon\www\GeoGas\obj\Debug\net8.0\swae.build.ex.cache
 C:\laragon\www\GeoGas\obj\Debug\net8.0\GeoGas.csproj.Up2Date
 C:\laragon\www\GeoGas\obj\Debug\net8.0\GeoGas.dll
 C:\laragon\www\GeoGas\obj\Debug\net8.0\refint\GeoGas.dll
@@ -307,3 +299,9 @@ C:\code-web\GeoGas\obj\Debug\net8.0\refint\GeoGas.dll
 C:\code-web\GeoGas\obj\Debug\net8.0\GeoGas.pdb
 C:\code-web\GeoGas\obj\Debug\net8.0\GeoGas.genruntimeconfig.cache
 C:\code-web\GeoGas\obj\Debug\net8.0\ref\GeoGas.dll
+C:\laragon\www\GeoGas\obj\Debug\net8.0\staticwebassets\msbuild.GeoGas.Microsoft.AspNetCore.StaticWebAssets.props
+C:\laragon\www\GeoGas\obj\Debug\net8.0\staticwebassets\msbuild.build.GeoGas.props
+C:\laragon\www\GeoGas\obj\Debug\net8.0\staticwebassets\msbuild.buildMultiTargeting.GeoGas.props
+C:\laragon\www\GeoGas\obj\Debug\net8.0\staticwebassets\msbuild.buildTransitive.GeoGas.props
+C:\laragon\www\GeoGas\obj\Debug\net8.0\staticwebassets.pack.json
+C:\laragon\www\GeoGas\bin\Debug\net8.0\package-lock.json

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./home.css";
 import LeafletMap from "../components/LeafletMap";
 import RouteModal from "../components/RouteModal";
@@ -9,8 +9,11 @@ function Home({ onLogout }) {
   const [showFilters, setShowFilters] = useState(false);
   const [showRouteModal, setShowRouteModal] = useState(false);
   const [showCarsModal, setShowCarsModal] = useState(false);
-  const [showProfileMenu, setShowProfileMenu] = useState(false); // Estado para menú de perfil
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [routeData, setRouteData] = useState(null);
+  const [userLocation, setUserLocation] = useState(null);
+  const [routeInfo, setRouteInfo] = useState(null);
+  const [gasolinerasBD, setGasolinerasBD] = useState([]);
 
   const navItems = [
     { id: "inicio", icon: "🏠", label: "Inicio" },
@@ -20,36 +23,61 @@ function Home({ onLogout }) {
     { id: "perfil", icon: "👤", label: "Perfil" }
   ];
 
-  const summaryData = [
-    {
-      label: "Estaciones cercanas",
-      value: "0",
-      hint: "En un radio de 5 km"
-    },
-    {
-      label: "Mejor precio hoy",
-      value: "$0",
-      hint: "Magna · Gasolinera Centro"
-    },
-    {
-      label: "Rendimiento estimado",
-      value: "0 km",
-      hint: "Con tu tanque actual"
-    }
-  ];
-
   // Obtener datos del usuario desde localStorage
   const userData = JSON.parse(localStorage.getItem('userData') || '{}');
 
+  // Obtener ubicación del usuario al cargar el componente
+  useEffect(() => {
+    obtenerUbicacionUsuario();
+  }, []);
+
+  // Obtener ubicación del usuario
+  const obtenerUbicacionUsuario = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const userCoords = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          };
+          setUserLocation(userCoords);
+          console.log('Ubicación obtenida:', userCoords);
+        },
+        (error) => {
+          console.error('Error obteniendo ubicación:', error);
+          setUserLocation({ lat: 18.1866353, lng: -91.0471586 });
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 15000,
+          maximumAge: 10000
+        }
+      );
+    }
+  };
+
+  // Función para navegar a una gasolinera (se llama desde RouteModal)
+  const navegarAGasolinera = (gasolinera) => {
+    if (!userLocation) {
+      alert('Obteniendo tu ubicación...');
+      obtenerUbicacionUsuario();
+      return;
+    }
+
+    const newRouteData = {
+      userCoords: userLocation,
+      destinoCoords: gasolinera.position,
+      destinoNombre: gasolinera.name,
+      onGasStationSelect: navegarAGasolinera
+    };
+
+    setRouteData(newRouteData);
+    setActiveTab("inicio");
+    setShowRouteModal(false);
+  };
+
   // Función para manejar el clic en el botón de rutas
   const handleRouteClick = () => {
-    const mockRouteData = {
-      ubicacion: "Av. Principal #123, Ciudad",
-      destino: "Gasolinera Premium Center", 
-      distancia: 3.2
-    };
-    
-    setRouteData(mockRouteData);
     setShowRouteModal(true);
   };
 
@@ -74,6 +102,33 @@ function Home({ onLogout }) {
       setShowProfileMenu(false);
     }
   };
+
+  // Callback cuando se calcula una ruta
+  const manejarRutaCalculada = (infoRuta) => {
+    setRouteInfo(infoRuta);
+    console.log('Información de la ruta calculada:', infoRuta);
+  };
+
+  // Actualizar summary data
+  const summaryData = [
+    {
+      label: "Estaciones en BD",
+      value: gasolinerasBD.length.toString(),
+      hint: "Total en base de datos"
+    },
+    {
+      label: "Mejor precio hoy",
+      value: "Consultar",
+      hint: "En gasolineras cercanas"
+    },
+    {
+      label: userLocation ? "Tu ubicación" : "Obteniendo ubicación...",
+      value: userLocation ? "✅ Activa" : "⌛ Cargando...",
+      hint: userLocation ? 
+        `Lat: ${userLocation.lat.toFixed(4)}, Lng: ${userLocation.lng.toFixed(4)}` : 
+        "Haz clic para actualizar"
+    }
+  ];
 
   // Agregar event listener para cerrar el menú al hacer clic fuera
   React.useEffect(() => {
@@ -105,6 +160,16 @@ function Home({ onLogout }) {
         </div>
 
         <div className="top-bar-right">
+          {/* Botón de ubicación */}
+          <button 
+            className="icon-button location-btn" 
+            aria-label="Actualizar ubicación"
+            onClick={obtenerUbicacionUsuario}
+            style={{ marginRight: '10px' }}
+          >
+            <span className="location-icon">📍</span>
+          </button>
+
           {/* Botón de perfil con menú desplegable */}
           <div className="profile-container">
             <button 
@@ -172,24 +237,39 @@ function Home({ onLogout }) {
               <div>
                 <h2 className="map-title">Mapa de estaciones</h2>
                 <p className="map-subtitle">
-                  {showFilters 
-                    ? "Filtros aplicados: Precio más bajo, Abiertas 24h" 
-                    : "Aquí se mostrará el mapa interactivo con las gasolineras."}
+                  {routeData ? 
+                    `Ruta a ${routeData.destinoNombre}` : 
+                    "Usa el botón 'Rutas' para seleccionar una gasolinera"}
+                  {routeInfo && ` · ${routeInfo.distancia} km · ${routeInfo.duracion} min`}
                 </p>
               </div>
-              <button 
-                className="map-filter-btn" 
-                type="button"
-                onClick={() => setShowFilters(!showFilters)}
-              >
-                {showFilters ? "✅ Filtros" : "🔍 Filtros"}
-              </button>
+              <div className="map-header-buttons">
+                {routeData && (
+                  <button 
+                    className="map-clear-route-btn" 
+                    type="button"
+                    onClick={() => setRouteData(null)}
+                  >
+                    🗑️ Limpiar ruta
+                  </button>
+                )}
+                <button 
+                  className="map-filter-btn" 
+                  type="button"
+                  onClick={() => setShowFilters(!showFilters)}
+                >
+                  {showFilters ? "✅ Filtros" : "🔍 Filtros"}
+                </button>
+              </div>
             </div>
 
-            {/* Contenedor del mapa */}
+            {/* Contenedor del mapa - Solo mostrará gasolineras de la BD */}
             <div className="map-placeholder">
-              <LeafletMap showFilters={showFilters} />
-              <span className="map-placeholder-text"></span>
+              <LeafletMap 
+                showFilters={showFilters} 
+                routeData={routeData}
+                onRouteCalculated={manejarRutaCalculada}
+              />
             </div>
           </div>
         </section>
@@ -225,6 +305,7 @@ function Home({ onLogout }) {
         isOpen={showRouteModal}
         onClose={() => setShowRouteModal(false)}
         routeData={routeData}
+        onNavigate={navegarAGasolinera}
       />
 
       {/* ===== MODAL DE COCHES ===== */}

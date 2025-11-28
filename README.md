@@ -95,6 +95,7 @@ El controlador de usuarios (v1.1.0) implementa un sistema de autenticación basa
 ## 📜 Historial de Versiones
 
 | Versión | Resumen de Cambios |
+|**v3.2.0**|Conexion de las ventanas emergentes de ruta, cohce, y se implemento la generacion de rutas y el filtrado de las gasolineras entre la mas sercana|
 |**v3.1.0**|Correccion de bug en la base de datos xd hora si quedo el controlador de gasolinas actualizabe el de presios y el de presios no actulizaba nada xd y el de presios no sirve por ahora|
 |**v3.0.0**|Se conecto el back end con el front end en la partes del login y register|
 |**v2.9.1**|se realizo una ventana emergente para la visualizacion de coches

@@ -1,168 +1,70 @@
-/* ... (mantén todos los estilos anteriores) ... */
-
-/* Estilos del formulario */
-.car-form {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin-bottom: 20px;
+/* Estilos para coche principal */
+.principal-car {
+  background: rgba(34, 197, 94, 0.1) !important;
+  border-color: rgba(34, 197, 94, 0.4) !important;
 }
 
-.form-group {
+/* Mensaje cuando no hay coches */
+.no-cars-message {
+  text-align: center;
+  padding: 40px 20px;
+  color: #a7f3d0;
+}
+
+.no-cars-message span {
+  font-size: 48px;
+  margin-bottom: 16px;
+  display: block;
+}
+
+.no-cars-message p {
+  margin: 0 0 20px 0;
+  font-size: 16px;
+}
+
+/* Acciones de coche */
+.car-actions {
   display: flex;
-  flex-direction: column;
   gap: 8px;
+  margin-top: 8px;
 }
 
-.form-label {
-  font-size: 14px;
+.action-btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 8px;
+  font-size: 11px;
   font-weight: 600;
-  color: #bbf7d0;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.form-input {
-  padding: 12px 16px;
-  background: rgba(15, 23, 42, 0.8);
-  border: 1px solid rgba(52, 211, 153, 0.4);
-  border-radius: 12px;
-  color: #f9fafb;
-  font-size: 14px;
+  cursor: pointer;
   transition: all 0.2s ease;
 }
 
-.form-input:focus {
-  outline: none;
-  border-color: #22c55e;
-  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
-}
-
-.form-input::placeholder {
-  color: #6b7280;
-}
-
-.search-btn {
-  margin-top: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-/* Mensaje de error */
-.error-message {
-  padding: 16px;
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.4);
-  border-radius: 12px;
-  color: #fecaca;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-
-.error-icon {
-  font-size: 16px;
-}
-
-/* Tarjeta de coche encontrado */
-.car-found-card {
-  background: rgba(34, 197, 94, 0.1);
-  border: 1px solid rgba(34, 197, 94, 0.4);
-  border-radius: 16px;
-  padding: 20px;
-  margin-bottom: 20px;
-  animation: slideUp 0.3s ease-out;
-}
-
-.car-found-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-
-.car-found-header h3 {
-  margin: 0;
-  color: #bbf7d0;
-  font-size: 16px;
-}
-
-.car-found-icon {
-  font-size: 20px;
-}
-
-.car-found-details {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 20px;
-}
-
-.car-detail {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 0;
-  border-bottom: 1px solid rgba(34, 197, 94, 0.2);
-}
-
-.car-detail:last-child {
-  border-bottom: none;
-}
-
-.detail-label {
-  font-size: 14px;
-  color: #a7f3d0;
-  font-weight: 500;
-}
-
-.detail-value {
-  font-size: 14px;
-  color: #f9fafb;
-  font-weight: 600;
-}
-
-.detail-value.highlight {
-  color: #22c55e;
+.action-btn.primary {
   background: rgba(34, 197, 94, 0.2);
-  padding: 4px 8px;
-  border-radius: 8px;
+  color: #bbf7d0;
+  border: 1px solid rgba(34, 197, 94, 0.4);
 }
 
-.add-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
+.action-btn.primary:hover {
+  background: rgba(34, 197, 94, 0.3);
 }
 
-/* Loading spinner */
-.loading-spinner {
-  animation: spin 1s linear infinite;
+.action-btn.danger {
+  background: rgba(239, 68, 68, 0.2);
+  color: #fecaca;
+  border: 1px solid rgba(239, 68, 68, 0.4);
 }
 
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.action-btn.danger:hover {
+  background: rgba(239, 68, 68, 0.3);
 }
 
-/* Estados de botones deshabilitados */
-.modal-action-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none !important;
+/* Mejoras para los items de coche */
+.car-item {
+  transition: all 0.2s ease;
 }
 
-.modal-action-btn:disabled:hover {
-  transform: none !important;
-  box-shadow: 0 8px 20px rgba(22, 163, 74, 0.5) !important;
+.car-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
