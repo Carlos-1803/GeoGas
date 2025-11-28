@@ -1,13 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Authorization; 
-using GEOGAS.Api.Models; 
-using GEOGAS.Api.Services; 
-using Microsoft.IdentityModel.Tokens; 
-using System.IdentityModel.Tokens.Jwt; 
-using System.Security.Claims; 
+using Microsoft.AspNetCore.Authorization;
+using GEOGAS.Api.Models;
+using GEOGAS.Api.Services;
+using System.Security.Claims;
 using System.Text;
 using GEOGAS.Api.Dtos;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
 
 
 namespace GEOGAS.Api.Controllers

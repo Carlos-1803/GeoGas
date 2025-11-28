@@ -1,11 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using GEOGAS.Api.Models;
 using GEOGAS.Api.Data;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Linq;
-using Microsoft.AspNetCore.Authorization; // Nuevo: Para proteger el endpoint
+using Microsoft.EntityFrameworkCore;
 
 namespace GEOGAS.Api.Controllers
 {
