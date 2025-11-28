@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authorization; // Necesario para [Authorize]
-using GEOGAS.Api.Data;  
+using Microsoft.AspNetCore.Authorization;
+using GEOGAS.Api.Data;  
 using GEOGAS.Models; 
-using GEOGAS.Api.Services; // Importamos el namespace para usar IDataSyncService
+using GEOGAS.Api.Services;
 
 namespace GEOGAS.Api.Controllers
 {
@@ -13,15 +13,12 @@ namespace GEOGAS.Api.Controllers
     public class GasolinerasController : ControllerBase
     {
         private readonly MyDbContext _context;
-        // CORRECCIÓN CLAVE: Usamos la interfaz registrada en Program.cs
-        private readonly IDataSyncService _dataSyncService; 
+        private readonly SincronizacionService _sincronizacionService;
 
-        // Constructor con Inyección de Dependencias
-        public GasolinerasController(MyDbContext context, IDataSyncService dataSyncService)
+        public GasolinerasController(MyDbContext context, SincronizacionService sincronizacionService)
         {
             _context = context;
-            // Inicializamos el servicio usando la interfaz
-            _dataSyncService = dataSyncService; 
+            _sincronizacionService = sincronizacionService; 
         }
 
         // 1. VER TODAS (GET: api/gasolineras)
@@ -30,8 +27,8 @@ namespace GEOGAS.Api.Controllers
         public async Task<ActionResult<IEnumerable<Gasolineras>>> GetGasolineras()
         {
             return await _context.Gasolinera
-        .Take(500) // Limita la consulta a solo los primeros 500 registros
-        .ToListAsync(); 
+                .Take(500)
+                .ToListAsync(); 
         }
 
         // 2. VER UNA (GET: api/gasolineras/5)
@@ -80,7 +77,6 @@ namespace GEOGAS.Api.Controllers
                 return NotFound();
             }
 
-            // Actualización de propiedades
             existingGasolinera.Nombre = gasolinera.Nombre;
             existingGasolinera.cre_id = gasolinera.cre_id;
             existingGasolinera.x = gasolinera.x;
@@ -122,37 +118,110 @@ namespace GEOGAS.Api.Controllers
         }
 
         // =========================================================
-        // 6. SINCRONIZAR (POST: api/Gasolineras/sincronizar)
+        // 6. SINCRONIZAR GASOLINERAS (POST: api/Gasolineras/sincronizar)
         // =========================================================
 
-        /// <summary>
-        /// Dispara la sincronización con la API externa y guarda solo los registros nuevos.
-        /// Este endpoint está protegido y solo puede ser llamado por un Admin autenticado.
-        /// </summary>
-        [HttpPost("sincronizar")] // Ruta: /api/Gasolineras/sincronizar
-        public async Task<IActionResult> SincronizarDatos()
+        [HttpPost("sincronizar")]
+        public async Task<IActionResult> SincronizarGasolineras()
         {
             try
             {
-                // Llamamos al servicio a través de la interfaz
-                var nuevosRegistros = await _dataSyncService.SyncGasPricesAsync();
-                
-                // Respuesta exitosa
+                // CORRECCIÓN: El método se llama SincronizarGasolinerasAsync (con una 'r')
+                var nuevosRegistros = await _sincronizacionService.SincronizarGasolinerasAsync();
+
+                // Verificar el estado actual de la base de datos
+                var totalGasolineras = await _context.Gasolinera.CountAsync();
+
                 return Ok(new { 
-                    mensaje = "Sincronización completada.", 
-                    registros_procesados = nuevosRegistros 
+                    mensaje = "Sincronización de gasolineras completada.", 
+                    nuevas_gasolineras = nuevosRegistros,
+                    total_gasolineras_bd = totalGasolineras,
+                    debug_info = $"Servicio retornó: {nuevosRegistros} nuevas gasolineras, BD tiene: {totalGasolineras} gasolineras en total"
                 });
             }
             catch (HttpRequestException ex)
             {
-                // Manejo de errores de conexión o API externa
-                return StatusCode(503, $"Error al conectar con la fuente externa: {ex.Message}");
+                return StatusCode(503, new { 
+                    error = "Error de conexión externa", 
+                    detalle = ex.Message 
+                });
             }
             catch (Exception ex)
             {
-                // Otros errores (XML parsing, DB, etc.)
-                return StatusCode(500, $"Error interno durante la sincronización: {ex.Message}");
+                return StatusCode(500, new { 
+                    error = "Error interno durante la sincronización", 
+                    detalle = ex.Message 
+                });
             }
+        }
+
+        // =========================================================
+        // 7. ENDPOINT DE DIAGNÓSTICO
+        // =========================================================
+
+        [HttpGet("estado-sincronizacion")]
+        public async Task<IActionResult> EstadoSincronizacion()
+        {
+            try
+            {
+                var diagnosticos = new List<string>();
+                
+                // 1. Verificar conexión a BD
+                var canConnect = await _context.Database.CanConnectAsync();
+                diagnosticos.Add($"Conexión BD: {(canConnect ? "OK" : "FALLÓ")}");
+                
+                // 2. Contar registros existentes
+                var totalGasolineras = await _context.Gasolinera.CountAsync();
+                var totalPrecios = await _context.presio_Gas.CountAsync();
+                diagnosticos.Add($"Gasolineras: {totalGasolineras}, Precios: {totalPrecios}");
+                
+                // 3. Verificar últimas inserciones
+                var ultimaGasolinera = await _context.Gasolinera
+                    .OrderByDescending(g => g.place_id)
+                    .FirstOrDefaultAsync();
+                
+                diagnosticos.Add($"Última gasolinera ID: {(ultimaGasolinera?.place_id.ToString() ?? "Ninguna")}");
+                
+                return Ok(new { 
+                    estado = "Diagnóstico completado",
+                    resultados = diagnosticos 
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { 
+                    error = "Error en diagnóstico", 
+                    detalle = ex.Message 
+                });
+            }
+        }
+
+        // =========================================================
+        // 8. ENDPOINT ADICIONAL: OBTENER ESTADÍSTICAS
+        // =========================================================
+
+        [HttpGet("estadisticas")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetEstadisticas()
+        {
+            var totalGasolineras = await _context.Gasolinera.CountAsync();
+            var totalPrecios = await _context.presio_Gas.CountAsync();
+            
+            // Agrupar precios por tipo
+            var preciosPorTipo = await _context.presio_Gas
+                .GroupBy(p => p.tipo)
+                .Select(g => new { 
+                    tipo = g.Key, 
+                    count = g.Count(),
+                    precio_promedio = g.Average(p => p.presio)
+                })
+                .ToListAsync();
+
+            return Ok(new {
+                total_gasolineras = totalGasolineras,
+                total_precios = totalPrecios,
+                precios_por_tipo = preciosPorTipo
+            });
         }
     }
 }

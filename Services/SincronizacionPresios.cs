@@ -89,7 +89,7 @@ public class DataSyncService : IDataSyncService
                                     {
                                         Gasolinerasplace_id = gasolinerasPlaceId,
                                         tipo = tipoGas,
-                                        presio = precioDecimal 
+                                        presio = Convert.ToInt32(precioDecimal)
                                     };
                                 }
                                 else

@@ -26,7 +26,14 @@ builder.Services.AddDbContext<MyDbContext>(options =>
 // --- REGISTRO DE SERVICIOS ---
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
-builder.Services.AddScoped<IDataSyncService, DataSyncService>();
+
+// CORRECCIÓN: Registrar SincronizacionService con HttpClient
+builder.Services.AddScoped<SincronizacionService>();
+builder.Services.AddHttpClient<SincronizacionService>();
+
+// O si prefieres usar la interfaz, cambia a:
+// builder.Services.AddScoped<IDataSyncService, SincronizacionService>();
+// builder.Services.AddHttpClient<IDataSyncService, SincronizacionService>();
 
 // Password Hashing
 builder.Services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
@@ -107,10 +114,3 @@ app.MapGet("/api/health", () => new {
 });
 
 app.Run();
-
-// Si necesitas SincronizacionService
-public class SincronizacionService : IDataSyncService
-{
-    public Task<bool> SyncGasPricesAsync() => throw new NotImplementedException();
-    public Task<bool> SyncStationsAsync() => throw new NotImplementedException();
-}

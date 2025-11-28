@@ -10,9 +10,8 @@ namespace GEOGAS.Api.Controllers
     public class PresioGasController : ControllerBase
     {
         private readonly MyDbContext _context;
-        private readonly IDataSyncService _dataSyncService; // Nuevo: Servicio de sincronización
+        private readonly IDataSyncService _dataSyncService;
 
-        // Inyección de dependencias del DbContext y el nuevo servicio de sincronización
         public PresioGasController(MyDbContext context, IDataSyncService dataSyncService)
         {
             _context = context;
@@ -20,41 +19,88 @@ namespace GEOGAS.Api.Controllers
         }
 
         // =========================================================
-        // NUEVO ENDPOINT PARA LA ACTUALIZACIÓN MANUAL
+        // ENDPOINT DE SINCRONIZACIÓN CORREGIDO
         // =========================================================
 
-        /// <summary>
-        /// Ejecuta el proceso de sincronización de datos con la API externa.
-        /// Este endpoint debe estar protegido (usando [Authorize]) para que solo 
-        /// administradores o sistemas puedan llamarlo.
-        /// </summary>
-        [HttpPost("actualizar")]
-      //  [Authorize] // Protege este endpoint, ¡asegúrate que solo usuarios autorizados puedan llamarlo!
-        public async Task<IActionResult> ActualizarPreciosDesdeAPI()
+        [HttpPost("sincronizar")]
+        public async Task<IActionResult> SincronizarDatos()
         {
-            var success = await _dataSyncService.SyncGasPricesAsync();
+            try
+            {
+                var nuevosRegistros = await _dataSyncService.SyncGasPricesAsync();
 
-            if (success)
-            {
-                return Ok(new { message = "Sincronización de precios de gas completada exitosamente." });
+                // Verifica en la base de datos directamente
+                var totalPrecios = await _context.presio_Gas.CountAsync();
+
+                return Ok(new { 
+                    mensaje = "Sincronización completada.", 
+                    registros_procesados = nuevosRegistros,
+                    total_precios_bd = totalPrecios,
+                    debug_info = $"Servicio retornó: {nuevosRegistros}, BD tiene: {totalPrecios} precios"
+                });
             }
-            else
+            catch (HttpRequestException ex)
             {
-                // Devolvemos un 500 Internal Server Error si el servicio falló.
-                return StatusCode(500, new { message = "Fallo en la sincronización de precios. Revise los logs del servidor." });
+                return StatusCode(503, new { 
+                    error = "Error de conexión externa", 
+                    detalle = ex.Message 
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { 
+                    error = "Error interno en sincronización", 
+                    detalle = ex.Message 
+                });
             }
         }
-        
+
+        [HttpGet("estado-sincronizacion")]
+        public async Task<IActionResult> EstadoSincronizacion()
+        {
+            try
+            {
+                var diagnosticos = new List<string>();
+                
+                // 1. Verificar conexión a BD
+                var canConnect = await _context.Database.CanConnectAsync();
+                diagnosticos.Add($"Conexión BD: {(canConnect ? "OK" : "FALLÓ")}");
+                
+                // 2. Contar registros existentes
+                var totalGasolineras = await _context.Gasolinera.CountAsync();
+                var totalPrecios = await _context.presio_Gas.CountAsync();
+                diagnosticos.Add($"Gasolineras: {totalGasolineras}, Precios: {totalPrecios}");
+                
+                // 3. Verificar últimas inserciones
+                var ultimoPrecio = await _context.presio_Gas
+                    .OrderByDescending(p => p.Id)
+                    .FirstOrDefaultAsync();
+                
+                diagnosticos.Add($"Último precio ID: {(ultimoPrecio?.Id.ToString() ?? "Ninguno")}");
+                
+                return Ok(new { 
+                    estado = "Diagnóstico completado",
+                    resultados = diagnosticos 
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { 
+                    error = "Error en diagnóstico", 
+                    detalle = ex.Message 
+                });
+            }
+        }
+
         // =========================================================
-        // MÉTODOS EXISTENTES (GET, POST, PUT, DELETE)
+        // ENDPOINTS CRUD CORREGIDOS
         // =========================================================
 
         // GET: api/PresioGas
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Presio_Gas>>> GetPreciosGas()
         {
-            return await _context.presio_Gas.Take(500) // Limita la consulta a solo los primeros 500 registros
-        .ToListAsync(); ;
+            return await _context.presio_Gas.Take(500).ToListAsync();
         }
 
         // GET: api/PresioGas/5
@@ -120,7 +166,7 @@ namespace GEOGAS.Api.Controllers
 
         // POST: api/PresioGas
         [HttpPost]
-       // [Authorize]
+        // [Authorize]
         public async Task<ActionResult<Presio_Gas>> PostPresioGas(Presio_Gas presioGas)
         {
             // Validar que la gasolinera exista
@@ -138,7 +184,7 @@ namespace GEOGAS.Api.Controllers
 
         // PUT: api/PresioGas/5
         [HttpPut("{id}")]
-     //   [Authorize]
+        // [Authorize]
         public async Task<IActionResult> PutPresioGas(int id, Presio_Gas presioGas)
         {
             if (id != presioGas.Id)
@@ -174,10 +220,9 @@ namespace GEOGAS.Api.Controllers
             return NoContent();
         }
 
-    
         // DELETE: api/PresioGas/5
         [HttpDelete("{id}")]
-      //  [Authorize]
+        // [Authorize]
         public async Task<IActionResult> DeletePresioGas(int id)
         {
             var presioGas = await _context.presio_Gas.FindAsync(id);

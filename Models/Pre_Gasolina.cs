@@ -9,7 +9,7 @@ namespace GEOGAS.Api.Models
         [Key]
         public int Id { get; set; }
         public required string tipo {get; set; }
-        public decimal presio {get; set; }
+        public int presio {get; set; }
         
 
         // Propiedad para la relación (Clave Foránea)
