@@ -1,10 +1,13 @@
 import React, { useState } from "react";
 import "./home.css";
 import LeafletMap from "../components/LeafletMap";
+import RouteModal from "../components/RouteModal";
 
 function App() {
   const [activeTab, setActiveTab] = useState("inicio");
   const [showFilters, setShowFilters] = useState(false);
+  const [showRouteModal, setShowRouteModal] = useState(false);
+  const [routeData, setRouteData] = useState(null);
 
   const navItems = [
     { id: "inicio", icon: "🏠", label: "Inicio" },
@@ -31,6 +34,20 @@ function App() {
       hint: "Con tu tanque actual"
     }
   ];
+
+  // Función para manejar el clic en el botón de rutas
+  const handleRouteClick = () => {
+    // Datos de ejemplo basados en tu modelo C# (sin userId)
+    const mockRouteData = {
+      ubicacion: "Av. Principal #123, Ciudad",
+      destino: "Gasolinera Premium Center", 
+      distancia: 3.2
+      // userId removido
+    };
+    
+    setRouteData(mockRouteData);
+    setShowRouteModal(true);
+  };
 
   return (
     <div className="app">
@@ -113,13 +130,25 @@ function App() {
           <button
             key={item.id}
             className={`nav-item ${activeTab === item.id ? "nav-item--active" : ""}`}
-            onClick={() => setActiveTab(item.id)}
+            onClick={() => {
+              setActiveTab(item.id);
+              if (item.id === "rutas") {
+                handleRouteClick();
+              }
+            }}
           >
             <span className="nav-icon">{item.icon}</span>
             <span className="nav-label">{item.label}</span>
           </button>
         ))}
       </nav>
+
+      {/* ===== MODAL DE RUTAS ===== */}
+      <RouteModal 
+        isOpen={showRouteModal}
+        onClose={() => setShowRouteModal(false)}
+        routeData={routeData}
+      />
     </div>
   );
 }
