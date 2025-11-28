@@ -22,6 +22,13 @@ bld/
 [Oo]bj/
 [Ll]og/
 [Ll]ogs/
+**/bin/
+**/obj/
+*.dll
+*.exe
+*.pdb
+*.cache
+*.deps.json
 
 # .NET Core
 project.lock.json

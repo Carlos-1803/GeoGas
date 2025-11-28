@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using GEOGAS.Api.Models;
 using GEOGAS.Api.Services;
 using GEOGAS.Api.Dtos;
+using System.Security.Claims;
 
 namespace GEOGAS.Api.Controllers
 {
@@ -103,5 +104,22 @@ namespace GEOGAS.Api.Controllers
                 User = new UserResponse { Id = user.Id, Nombre = user.Nombre, Correo = user.Correo }
             });
         }
+        // En tu AuthController.cs
+[HttpGet("validate")]
+[Authorize] // Este atributo ya valida el token automáticamente
+public IActionResult Validate()
+{
+    // Si llegó aquí, el token es válido
+    var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    var userEmail = User.FindFirst(ClaimTypes.Email)?.Value;
+    
+    return Ok(new 
+    { 
+        IsValid = true,
+        UserId = userId,
+        UserEmail = userEmail,
+        Message = "Token válido"
+    });
+}
     }
 }

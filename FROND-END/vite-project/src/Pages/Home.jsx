@@ -2,13 +2,14 @@ import React, { useState } from "react";
 import "./home.css";
 import LeafletMap from "../components/LeafletMap";
 import RouteModal from "../components/RouteModal";
-import CarsModal from "../components/CarsModal"; // Importa el nuevo modal
+import CarsModal from "../components/CarsModal";
 
 function Home({ onLogout }) {
   const [activeTab, setActiveTab] = useState("inicio");
   const [showFilters, setShowFilters] = useState(false);
   const [showRouteModal, setShowRouteModal] = useState(false);
-  const [showCarsModal, setShowCarsModal] = useState(false); // Nuevo estado para coches
+  const [showCarsModal, setShowCarsModal] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false); // Estado para menú de perfil
   const [routeData, setRouteData] = useState(null);
 
   const navItems = [
@@ -37,6 +38,9 @@ function Home({ onLogout }) {
     }
   ];
 
+  // Obtener datos del usuario desde localStorage
+  const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+
   // Función para manejar el clic en el botón de rutas
   const handleRouteClick = () => {
     const mockRouteData = {
@@ -54,12 +58,35 @@ function Home({ onLogout }) {
     setShowCarsModal(true);
   };
 
-  // Función para manejar acciones de perfil (incluyendo logout)
+  // Función para manejar el clic en el botón de perfil
   const handleProfileClick = () => {
-    // Aquí puedes agregar más lógica para el perfil
-    // Por ahora solo maneja el logout
+    setShowProfileMenu(!showProfileMenu);
+  };
+
+  // Función para cerrar sesión
+  const handleLogout = () => {
     onLogout();
   };
+
+  // Función para cerrar el menú de perfil al hacer clic fuera
+  const handleClickOutside = (e) => {
+    if (!e.target.closest('.profile-container')) {
+      setShowProfileMenu(false);
+    }
+  };
+
+  // Agregar event listener para cerrar el menú al hacer clic fuera
+  React.useEffect(() => {
+    if (showProfileMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    } else {
+      document.removeEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showProfileMenu]);
 
   return (
     <div className="app">
@@ -71,21 +98,52 @@ function Home({ onLogout }) {
             <div className="brand-text">
               <h1 className="brand-title">GeoGas Auto</h1>
               <p className="brand-subtitle">
-                Encuentra la mejor gasolina cerca de ti
+                Bienvenido, {userData.Nombre || 'Usuario'}
               </p>
             </div>
           </div>
         </div>
 
         <div className="top-bar-right">
-          {/* Botón de perfil */}
-          <button 
-            className="icon-button profile-btn" 
-            aria-label="Perfil de usuario"
-            onClick={handleProfileClick}
-          >
-            <span className="avatar">RR</span>
-          </button>
+          {/* Botón de perfil con menú desplegable */}
+          <div className="profile-container">
+            <button 
+              className="icon-button profile-btn" 
+              aria-label="Perfil de usuario"
+              onClick={handleProfileClick}
+            >
+              <span className="avatar">
+                {userData.Nombre ? userData.Nombre.charAt(0).toUpperCase() : 'U'}
+              </span>
+            </button>
+            
+            {/* Menú desplegable del perfil */}
+            {showProfileMenu && (
+              <div className="profile-menu">
+                <div className="profile-info">
+                  <p><strong>{userData.Nombre || 'Usuario'}</strong></p>
+                  <p className="profile-email">{userData.Correo || ''}</p>
+                </div>
+                <div className="profile-actions">
+                  <button className="profile-menu-item">
+                    👤 Mi Perfil
+                  </button>
+                  <button className="profile-menu-item">
+                    ⚙️ Configuración
+                  </button>
+                  <button className="profile-menu-item">
+                    📊 Mis Estadísticas
+                  </button>
+                  <button 
+                    className="profile-menu-item logout-item"
+                    onClick={handleLogout}
+                  >
+                    🚪 Cerrar Sesión
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Icono de ajustes */}
           <button className="icon-button settings-btn" aria-label="Ajustes">
@@ -169,7 +227,7 @@ function Home({ onLogout }) {
         routeData={routeData}
       />
 
-      {/* ===== NUEVO MODAL DE COCHES ===== */}
+      {/* ===== MODAL DE COCHES ===== */}
       <CarsModal 
         isOpen={showCarsModal}
         onClose={() => setShowCarsModal(false)}

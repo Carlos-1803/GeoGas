@@ -95,6 +95,7 @@ El controlador de usuarios (v1.1.0) implementa un sistema de autenticación basa
 ## 📜 Historial de Versiones
 
 | Versión | Resumen de Cambios |
+|**v3.0.0**|Se conecto el back end con el front end en la partes del login y register|
 |**v2.9.1**|se realizo una ventana emergente para la visualizacion de coches
 |**v2.9.0**|se creo `RouteModal` y `RouteModal` para la visualizacion de una venta emergente de la generacion de ruta 
 |**v2.8.0**|Se implemeto la vista del login y registro tambien se mejoro el home y se añadio un welcome|

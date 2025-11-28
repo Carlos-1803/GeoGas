@@ -8,11 +8,11 @@ using System.Text;
 using GEOGAS.Api.Models;
 using GEOGAS.Api.Services;
 using Microsoft.Extensions.Logging; 
-
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// --- INICIO: CONFIGURACIÓN DE LA BASE DE DATOS Y CONTEXTO ---
+// --- CONFIGURACIÓN DE LA BASE DE DATOS ---
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddDbContext<MyDbContext>(options =>
@@ -22,38 +22,33 @@ builder.Services.AddDbContext<MyDbContext>(options =>
         mySqlOptions => mySqlOptions.EnableRetryOnFailure() 
     )
 );
-// --- FIN: CONFIGURACIÓN DE LA BASE DE DATOS Y CONTEXTO ---
 
-
-// =========================================================
-// --- REGISTRO DE SERVICIOS CUSTOM ---
-// =========================================================
-
-// Servicios de Lógica de Negocio y Repositorios
+// --- REGISTRO DE SERVICIOS ---
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
-
-// REGISTRO DEL NUEVO SERVICIO DE SINCRONIZACIÓN (Interfaz)
 builder.Services.AddScoped<IDataSyncService, DataSyncService>();
 
-// ====================================================================================
-// CORRECCIÓN CLAVE: El controlador pide "SincronizacionService" (la clase concreta), 
-// pero no está registrado. Asumo que el controlador se refiere a DataSyncService,
-// por lo que mapearé el nombre incorrecto a la implementación correcta.
-// Si tienes una clase llamada SincronizacionService, usa esa clase en su lugar.
-// Ya que no tengo esa clase, usaré DataSyncService como implementación.
-// ====================================================================================
-builder.Services.AddScoped<SincronizacionService>(provider => 
-    (SincronizacionService)provider.GetRequiredService<IDataSyncService>()
-);
-// ------------------------------------------------------------------------------------
+// Password Hashing
+builder.Services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
 
+// --- CONFIGURACIÓN CORS MEJORADA ---
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins(
+            "http://localhost:3000", 
+            "https://localhost:3000",
+            "http://localhost:5173", // Vite
+            "http://localhost:5287"  // Vite HTTPS
+        )
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials();
+    });
+});
 
-// 1. Registro del Password Hashing
-IServiceCollection serviceCollection = builder.Services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
-
-
-// 2. Configuración de la Autenticación JWT (JSON Web Token)
+// --- CONFIGURACIÓN JWT ---
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 var secretKey = jwtSettings["Secret"] ?? throw new InvalidOperationException("La clave secreta JWT no está configurada.");
 var key = Encoding.ASCII.GetBytes(secretKey);
@@ -71,13 +66,10 @@ builder.Services.AddAuthentication(options =>
     {
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(key),
-        
         ValidateIssuer = true,
         ValidIssuer = jwtSettings["Issuer"],
-        
         ValidateAudience = true,
         ValidAudience = jwtSettings["Audience"],
-        
         ValidateLifetime = true,
         ClockSkew = TimeSpan.Zero
     };
@@ -85,63 +77,40 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddControllers(); 
 builder.Services.AddEndpointsApiExplorer();
-
-// ====================================================================================
-// CORRECCIÓN PARA EVITAR EL ERROR "Maximum call stack size exceeded" en Swagger UI
-// ====================================================================================
 builder.Services.AddSwaggerGen(c =>
 {
     c.CustomSchemaIds(type => type.FullName);
     c.IgnoreObsoleteProperties();
 });
-// ====================================================================================
-
 
 var app = builder.Build();
 
+// --- CONFIGURACIÓN DEL PIPELINE ---
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
+// ⚠️ ORDEN CRÍTICO: CORS debe ir ANTES de Authentication y Authorization
+app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapControllers(); 
+app.MapControllers();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast")
-.WithOpenApi();
+// Endpoint de salud
+app.MapGet("/api/health", () => new { 
+    status = "OK", 
+    message = "API GeoGas funcionando", 
+    timestamp = DateTime.UtcNow 
+});
 
 app.Run();
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
-
-// Clase Placeholder:
-// Se necesita una declaración de clase para que el compilador sepa qué es SincronizacionService.
-// Si esta clase no existe en tu proyecto, es la causa del error.
+// Si necesitas SincronizacionService
 public class SincronizacionService : IDataSyncService
 {
-    // Solo un placeholder para satisfacer el registro
     public Task<bool> SyncGasPricesAsync() => throw new NotImplementedException();
+    public Task<bool> SyncStationsAsync() => throw new NotImplementedException();
 }
